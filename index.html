@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mi Presupuesto</title><meta name="theme-color" content="#17365d"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root{--navy:#17365d;--navy2:#244c78;--blue:#4b82b8;--ink:#182638;--muted:#718096;--line:#e4eaf1;--surface:#fff;--bg:#f4f7fb;--green:#16845b;--red:#b42318;--radius:18px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:88px}
+header{background:linear-gradient(125deg,var(--navy),#285581);color:#fff;padding:19px max(18px,calc((100vw - 980px)/2));box-shadow:0 4px 18px #17365d1a}
+header h1{font-size:1.2rem;letter-spacing:-.02em;margin:0;font-weight:750}
+header div{font-size:.82rem;color:#d9e6f4;margin-top:3px}
+main{max-width:980px;margin:0 auto;padding:20px 14px 28px;display:block}
+.page{display:none;animation:fadeIn .18s ease-out}.page.active{display:block}
+@keyframes fadeIn{from{opacity:.65;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.page-heading{display:flex;justify-content:space-between;align-items:end;margin:2px 2px 17px}
+.page-heading h2{font-size:1.5rem;letter-spacing:-.04em;margin:0;font-weight:780}
+.eyebrow{font-size:.68rem;letter-spacing:.13em;font-weight:800;color:var(--blue);margin:0 0 5px}
+.subheading{color:var(--muted);font-size:.88rem;margin:5px 0 0}
+.card{background:var(--surface);padding:18px;border-radius:var(--radius);border:1px solid var(--line);box-shadow:0 3px 12px #20375406;margin:0 0 14px;min-width:0}
+.card h2{font-size:1rem;letter-spacing:-.015em;margin:0 0 13px;font-weight:750}
+.home-grid{display:grid;gap:14px}
+.home-grid>.card:nth-child(1){background:linear-gradient(135deg,#17365d,#285581);color:#fff;border:0}
+.home-grid>.card:nth-child(1) .stat{background:#ffffff18;border:1px solid #ffffff18}
+.home-grid>.card:nth-child(1) .stat small,.home-grid>.card:nth-child(1) .note{color:#dbe8f5}
+.home-grid>.card:nth-child(1) .stat strong{font-size:1.3rem}
+label{display:block;margin:10px 0 5px;color:#536579;font-size:.8rem;font-weight:650}
+input,select,button{font:inherit;border-radius:10px;box-sizing:border-box}
+input,select{display:block;width:100%;padding:10px 11px;border:1px solid #d5dee8;background:#fff;color:var(--ink);outline:none;min-width:0;font-size:.9rem}
+input:focus,select:focus{border-color:#6a9bcb;box-shadow:0 0 0 3px #4b82b81c}
+button{border:0;cursor:pointer;transition:transform .12s,background .12s;font-size:.88rem;font-weight:700;padding:10px 13px}
+button:active{transform:scale(.985)}
+.card>button:not(.alt){width:100%;background:var(--navy);color:#fff;margin-top:13px}
+.card>button:not(.alt):hover{background:var(--navy2)}
+button.alt{background:#edf2f8;color:var(--navy)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row,.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row.three{grid-template-columns:1.2fr .8fr 1fr}
+.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.stat{background:#f2f6fa;border-radius:13px;padding:12px;min-width:0}
+.stat small{display:block;color:#6b7b8d;font-size:.73rem;margin-bottom:5px}
+.stat strong{font-size:1.12rem;letter-spacing:-.025em;overflow-wrap:anywhere}
+.note{font-size:.78rem;color:var(--muted);line-height:1.5;margin:10px 0 0}
+.line{display:flex;justify-content:space-between;gap:8px;margin:13px 0 6px;font-size:.83rem}
+.line b{font-variant-numeric:tabular-nums}
+.bar{height:7px;background:#e8edf3;border-radius:99px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--blue);border-radius:99px;transition:width .2s}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:.8rem;min-width:570px;background:#fff}
+td,th{text-align:left;padding:10px 9px;border-bottom:1px solid #e9eef4;white-space:nowrap}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:#718096;background:#f8fafc}
+tr:last-child td{border-bottom:0}
+td button{padding:6px 9px;font-size:.75rem}
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}
+.actions button{width:100%;margin:0}
+.actions input{width:100%}
+.income-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #e9eef4}
+.income-item:last-child{border-bottom:0}
+.income-item small{display:block;color:var(--muted);font-size:.75rem;margin-top:2px}
+.income-item button{width:auto;margin:0;padding:7px 9px}
+.settings-card .actions{margin-top:16px}
+.bottom-nav{position:fixed;z-index:10;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));background:#ffffffed;backdrop-filter:blur(16px);border-top:1px solid #e1e7ef;box-shadow:0 -5px 18px #1c355008}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:transparent;color:#78879a;padding:5px 2px;font-size:.68rem;font-weight:650;border-radius:11px}
+.nav-item .nav-icon{font-size:1.2rem;line-height:1.2;font-weight:500}
+.nav-item.active{background:#eaf1f9;color:var(--navy)}
+@media(min-width:700px){
+ body{padding-bottom:25px}
+ header{padding-top:23px;padding-bottom:23px}
+ main{padding:28px 20px 36px}
+ .home-grid{grid-template-columns:1fr 1fr}
+ .home-grid>.card:nth-child(1){grid-column:1/-1}
+ .home-grid>.card:nth-child(2),.home-grid>.card:nth-child(3){align-self:start}
+ .bottom-nav{position:sticky;top:0;bottom:auto;max-width:600px;margin:0 auto 5px;border:1px solid var(--line);border-radius:0 0 16px 16px;padding:7px;box-shadow:0 4px 15px #1c35500a}
+ .nav-item{flex-direction:row;gap:7px;font-size:.8rem;padding:10px}
+ .nav-item .nav-icon{font-size:1rem}
+ .actions{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:420px){
+ main{padding:15px 10px 24px}
+ .card{padding:15px;border-radius:15px}
+ .page-heading h2{font-size:1.35rem}
+ .row.three{grid-template-columns:1fr}
+ .row.three button{margin-top:0!important}
+ .stat{padding:10px}
+ .stat strong{font-size:1.02rem}
+}
+</style></head><body>
+<header><h1>Mi Presupuesto</h1><div>Ingresos, gastos y ahorro en un solo lugar</div></header>
+<main>
+  <section class="page active" id="page-home" aria-labelledby="homeTitle">
+    <div class="page-heading"><div><p class="eyebrow">TU DINERO, MÁS CLARO</p><h2 id="homeTitle">Resumen del mes</h2><p class="subheading">Revisa cómo vas y registra tus ingresos.</p></div></div>
+    <div class="home-grid"><section class="card"><h2>Resumen del mes</h2><div class="stats"><div class="stat"><small>Ingreso</small><strong id="mIncome">$0,00</strong></div><div class="stat"><small>Gastos</small><strong id="mSpent">$0,00</strong></div><div class="stat"><small>Ahorro personal</small><strong id="mSave">$0,00</strong></div><div class="stat"><small>Disponible</small><strong id="mLeft">$0,00</strong></div></div><p id="summary" class="note"></p></section><section class="card"><h2>Ingreso de ASSA</h2><div class="row"><div><label>Mes</label><input id="month" type="month"></div><div><label>Depósito recibido ($)</label><input id="income" type="number" min="0" step=".01" placeholder="Ej. 487.30"></div></div><p class="note">Ingresa lo que llegó a tu cuenta después del IESS y demás descuentos. Los ingresos adicionales se registran por separado y se suman automáticamente.</p><button id="saveIncome">Guardar ingreso</button></section><section class="card"><h2>Ingresos adicionales</h2><p class="note">Registra ventas de productos u otros ingresos extra. Puedes añadir varios durante el mes.</p><div class="row"><div><label>Fecha</label><input id="extraDate" type="date"></div><div><label>Valor ($)</label><input id="extraAmount" type="number" min=".01" step=".01" placeholder="Ej. 20.00"></div></div><label>Descripción</label><input id="extraDesc" placeholder="Ej. venta adicional de un repuesto"><button id="addExtraIncome">Registrar ingreso adicional</button><div class="line"><span>Total de ingresos adicionales del mes</span><b id="extraTotal">$0,00</b></div><div id="extraIncomeList"></div><p id="extraEmpty" class="note">Todavía no hay ingresos adicionales registrados este mes.</p></section></div>
+  </section>
+  <section class="page" id="page-movements" aria-labelledby="movementsTitle">
+    <div class="page-heading"><div><p class="eyebrow">REGISTRO DIARIO</p><h2 id="movementsTitle">Movimientos</h2><p class="subheading">Añade gastos y consulta lo que has registrado.</p></div></div>
+    <section class="card"><h2>Registrar movimiento</h2><label>Fecha</label><input id="date" type="date"><label>Descripción</label><input id="desc" placeholder="Ej. almuerzo, gasolina"><div class="row"><div><label>Categoría</label><select id="cat"></select></div><div><label>Valor ($)</label><input id="amount" type="number" min=".01" step=".01"></div></div><label>Tipo</label><select id="kind"><option value="gasto">Gasto</option><option value="ahorro">Ahorro personal</option></select><button id="add">Añadir movimiento</button></section>
+    <section class="card wide"><h2>Movimientos del mes</h2><div class="scroll"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody id="rows"></tbody></table></div><p id="empty" class="note">No hay movimientos este mes.</p><p class="note">Aquí puedes revisar y eliminar los movimientos registrados durante el mes seleccionado.</p></section>
+  </section>
+  <section class="page" id="page-budget" aria-labelledby="budgetTitle">
+    <div class="page-heading"><div><p class="eyebrow">PLANIFICA CON INTENCIÓN</p><h2 id="budgetTitle">Presupuesto</h2><p class="subheading">Controla tus límites y organiza tus categorías.</p></div></div>
+    <section class="card"><h2>Tu presupuesto</h2><p class="note">Límites iniciales editables. Ajusta los gastos variables si recibes menos dinero.</p><div id="budget"></div><div class="card" style="background:#f7f9fb;margin-top:14px;padding:12px"><h2>Modificar límite variable</h2><label>Selecciona la categoría</label><select id="editBudgetCat"></select><label>Nuevo límite mensual ($)</label><input id="editBudgetLimit" type="number" min="0" step=".01" placeholder="Ej. 35.00"><button id="saveBudgetLimit">Guardar límite</button><p class="note">Solo necesitas elegir la categoría que quieres cambiar; no hace falta recorrer las demás.</p></div></section>
+    <section class="card"><h2>Administrar categorías</h2><p class="note">Puedes crear categorías nuevas o eliminar las que ya no necesites. Los movimientos antiguos conservarán el nombre de su categoría.</p><label>Nueva categoría</label><div class="row three"><div><input id="newCat" placeholder="Ej. Salud, transporte"></div><div><input id="newCatLimit" type="number" min="0" step=".01" placeholder="Límite $" aria-label="Límite mensual de la nueva categoría"></div><div><button id="addCat" style="margin-top:0">Agregar categoría</button></div></div><p class="note">Al crear una categoría, define también cuánto quieres gastar como máximo al mes.</p><label>Eliminar categoría</label><div class="row"><div><select id="deleteCatSelect"><option value="">Selecciona una categoría</option></select></div><div><button class="alt" id="deleteCat" style="margin-top:0" disabled>Eliminar seleccionada</button></div></div><p class="note">Selecciona una sola categoría para eliminarla. Los movimientos antiguos conservarán el nombre de su categoría.</p></section>
+  </section>
+  <section class="page" id="page-settings" aria-labelledby="settingsTitle">
+    <div class="page-heading"><div><p class="eyebrow">TU APLICACIÓN</p><h2 id="settingsTitle">Ajustes y respaldos</h2><p class="subheading">Protege tus datos y exporta tus movimientos.</p></div></div>
+    <section class="card" id="cloudCard"><h2>Cuenta y sincronización en la nube</h2><p class="note" id="cloudStatus">Comprueba la configuración para activar la sincronización segura.</p><label for="cloudEmail">Correo electrónico</label><input id="cloudEmail" type="email" autocomplete="username" placeholder="tu correo"><label for="cloudPassword">Contraseña</label><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Usa una contraseña segura"><div class="actions"><button class="alt" id="cloudLogin">Iniciar sesión</button><button class="alt" id="cloudSignup">Crear cuenta</button><button class="alt" id="cloudLogout" disabled>Cerrar sesión</button></div><p class="note">La cuenta protege tus datos. Al iniciar sesión por primera vez en un dispositivo sin datos en la nube, la app subirá los datos locales. Si ya hay datos en la nube, esos datos se cargarán en este dispositivo.</p></section>
+    <section class="card settings-card"><h2>Datos y copias de seguridad</h2><p class="note">Además de la sincronización en la nube, conserva una copia de seguridad periódica como respaldo adicional.</p><div class="actions"><button class="alt" id="csv">Exportar CSV</button><button class="alt" id="backup">Copia de seguridad</button><button class="alt" id="restoreBtn">Restaurar copia</button><input id="restore" type="file" accept=".json" hidden><button class="alt" id="clear">Borrar movimientos del mes</button></div><p class="note">Al restaurar una copia con sesión iniciada, los datos restaurados también se guardarán en la nube.</p></section>
+  </section>
+</main>
+<nav class="bottom-nav" aria-label="Navegación principal">
+  <button class="nav-item active" type="button" data-page="home"><span class="nav-icon">⌂</span><span>Inicio</span></button>
+  <button class="nav-item" type="button" data-page="movements"><span class="nav-icon">↔</span><span>Movimientos</span></button>
+  <button class="nav-item" type="button" data-page="budget"><span class="nav-icon">▤</span><span>Presupuesto</span></button>
+  <button class="nav-item" type="button" data-page="settings"><span class="nav-icon">⚙</span><span>Ajustes</span></button>
+</nav>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+let cloudClient=null, cloudUser=null, cloudTimer=null, cloudLoading=false;
+const cloudConfigured=()=>Boolean(window.MI_SUPABASE_URL && window.MI_SUPABASE_ANON_KEY && !window.MI_SUPABASE_URL.includes("TU_PROYECTO") && !window.MI_SUPABASE_ANON_KEY.includes("TU_CLAVE"));
+function cloudMessage(msg){const el=document.getElementById("cloudStatus");if(el)el.textContent=msg}
+function scheduleCloudSave(){if(!cloudClient||!cloudUser||cloudLoading)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(async()=>{try{const {error}=await cloudClient.from("budget_data").upsert({user_id:cloudUser.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(error)throw error;cloudMessage("Sesión activa: cambios guardados en la nube.")}catch(e){cloudMessage("No se pudo sincronizar. Revisa la conexión y la configuración; tus cambios siguen guardados en este dispositivo.")}},700)}
+async function loadCloudData(user){cloudUser=user;cloudLoading=true;try{const {data:row,error}=await cloudClient.from("budget_data").select("data").eq("user_id",user.id).maybeSingle();if(error)throw error;if(row&&row.data){data={...data,...row.data,additionalIncomes:Array.isArray(row.data.additionalIncomes)?row.data.additionalIncomes:[],budgets:{...defaults,...row.data.budgets},categories:Array.isArray(row.data.categories)?row.data.categories:[...initialCats]};localStorage.setItem("miPresupuesto",JSON.stringify(data));render();cloudMessage("Sesión activa: tus datos se cargaron desde la nube.")}else{const {error:upErr}=await cloudClient.from("budget_data").upsert({user_id:user.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(upErr)throw upErr;cloudMessage("Cuenta conectada. Los datos de este dispositivo se guardaron en la nube.")}document.getElementById("cloudEmail").value=user.email||"";document.getElementById("cloudPassword").value="";document.getElementById("cloudLogin").disabled=true;document.getElementById("cloudSignup").disabled=true;document.getElementById("cloudLogout").disabled=false;}catch(e){cloudMessage("Error al cargar o guardar en la nube: "+(e.message||"verifica la tabla y las políticas RLS"));cloudUser=null;}finally{cloudLoading=false}}
+async function initCloud(){if(!cloudConfigured()||!window.supabase){cloudMessage("Falta configurar Supabase. Sigue el archivo LEEME para activar la nube; mientras tanto, los datos siguen guardándose localmente.");return}cloudClient=window.supabase.createClient(window.MI_SUPABASE_URL,window.MI_SUPABASE_ANON_KEY);const {data:sessionData,error}=await cloudClient.auth.getSession();if(error){cloudMessage("No se pudo comprobar la sesión: "+error.message);return}if(sessionData.session)await loadCloudData(sessionData.session.user);else cloudMessage("Configuración lista. Inicia sesión para sincronizar tus datos en todos tus dispositivos.");cloudClient.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_OUT"){cloudUser=null;document.getElementById("cloudLogin").disabled=false;document.getElementById("cloudSignup").disabled=false;document.getElementById("cloudLogout").disabled=true;cloudMessage("Sesión cerrada. Los datos locales de este dispositivo se conservan.")}else if(event==="SIGNED_IN"&&session&&(!cloudUser||cloudUser.id!==session.user.id)){setTimeout(()=>loadCloudData(session.user),0)}})}
+document.getElementById("cloudLogin").onclick=async()=>{if(!cloudClient){alert("Primero configura Supabase siguiendo LEEME.");return}const email=document.getElementById("cloudEmail").value.trim(),password=document.getElementById("cloudPassword").value;if(!email||!password){alert("Escribe tu correo y contraseña.");return}const {data:res,error}=await cloudClient.auth.signInWithPassword({email,password});if(error){cloudMessage("No se pudo iniciar sesión: "+error.message);return}await loadCloudData(res.user)};
+document.getElementById("cloudSignup").onclick=async()=>{if(!cloudClient){alert("Primero configura Supabase siguiendo LEEME.");return}const email=document.getElementById("cloudEmail").value.trim(),password=document.getElementById("cloudPassword").value;if(!email||password.length<8){alert("Escribe tu correo y una contraseña de al menos 8 caracteres.");return}const {data:res,error}=await cloudClient.auth.signUp({email,password});if(error){cloudMessage("No se pudo crear la cuenta: "+error.message);return}if(res.session&&res.user)await loadCloudData(res.user);else cloudMessage("Cuenta creada. Revisa tu correo para confirmar la cuenta y luego inicia sesión.")};
+document.getElementById("cloudLogout").onclick=async()=>{if(cloudClient){const {error}=await cloudClient.auth.signOut();if(error)cloudMessage("No se pudo cerrar sesión: "+error.message)}};
+const fixed=[['Gastos de la casa',65],['Ahorro conjunto con novia',40],['Plan celular',6],['Comida del gato',10],['Gasolina',20]];
+const defaults={'Salidas con mi novia':70,'Salidas con amigos':30,'Ropa':20,'Zapatos':15,'Golosinas/antojos':20,'Gastos varios':20};
+const initialCats=[...fixed.map(x=>x[0]),...Object.keys(defaults),'Ahorro personal','Imprevistos'];
+const $=x=>document.getElementById(x), money=n=>new Intl.NumberFormat('es-EC',{style:'currency',currency:'USD'}).format(Number(n)||0);
+const now=new Date(), monthNow=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'), dateNow=monthNow+'-'+String(now.getDate()).padStart(2,'0');
+$('month').value=monthNow;$('date').value=dateNow;$('extraDate').value=dateNow;
+let data={incomes:{},additionalIncomes:[],transactions:[],budgets:{...defaults},categories:[...initialCats]};
+try{let s=localStorage.getItem('miPresupuesto');if(s){let d=JSON.parse(s);data={...data,...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],budgets:{...defaults,...d.budgets},categories:Array.isArray(d.categories)?d.categories:[...initialCats]}}}catch(e){}
+function save(){localStorage.setItem('miPresupuesto',JSON.stringify(data));scheduleCloudSave()}
+function renderCategories(){
+ const select=$('cat'),current=select.value;select.innerHTML='';
+ data.categories.forEach(c=>{let o=document.createElement('option');o.value=c;o.textContent=c;select.appendChild(o)});
+ if(data.categories.includes(current))select.value=current;
+ const deleteSelect=$('deleteCatSelect'),deleteCurrent=deleteSelect.value;
+ deleteSelect.innerHTML='';
+ const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Selecciona una categoría';deleteSelect.appendChild(placeholder);
+ data.categories.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;deleteSelect.appendChild(o)});
+ if(data.categories.includes(deleteCurrent))deleteSelect.value=deleteCurrent;
+ $('deleteCat').disabled=!deleteSelect.value;
+ const editSelect=$('editBudgetCat'),editCurrent=editSelect.value;editSelect.innerHTML='';
+ const editable=Object.keys(data.budgets).filter(c=>data.categories.includes(c)&&!fixed.some(x=>x[0]===c));
+ if(!editable.length){const o=document.createElement('option');o.value='';o.textContent='No hay categorías variables';editSelect.appendChild(o)}
+ editable.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;editSelect.appendChild(o)});
+ if(editable.includes(editCurrent))editSelect.value=editCurrent;
+ $('editBudgetLimit').value=editSelect.value!==''?(data.budgets[editSelect.value]??0):'';
+} 
+$('deleteCatSelect').onchange=()=>{$('deleteCat').disabled=!$('deleteCatSelect').value};
+$('editBudgetCat').onchange=()=>{$('editBudgetLimit').value=$('editBudgetCat').value!==''?(data.budgets[$('editBudgetCat').value]??0):''};
+$('saveBudgetLimit').onclick=()=>{const c=$('editBudgetCat').value,v=Number($('editBudgetLimit').value);if(!c){alert('Selecciona una categoría variable.');return}if($('editBudgetLimit').value.trim()===''||!Number.isFinite(v)||v<0){alert('Ingresa un límite válido, igual o mayor que cero.');return}data.budgets[c]=v;save();render();$('editBudgetCat').value=c;$('editBudgetLimit').value=v;alert('Límite de “'+c+'” actualizado a '+money(v)+'.')};
+$('deleteCat').onclick=()=>{const c=$('deleteCatSelect').value;if(!c){alert('Selecciona una categoría para eliminar.');return}if(!confirm('¿Eliminar la categoría "'+c+'"? Los movimientos ya registrados no se borrarán.'))return;data.categories=data.categories.filter(x=>x!==c);delete data.budgets[c];save();render()};
+$('addCat').onclick=()=>{const name=$('newCat').value.trim();if(!name){alert('Escribe el nombre de la categoría.');return}if(data.categories.some(c=>c.toLocaleLowerCase()===name.toLocaleLowerCase())){alert('Esa categoría ya existe.');return}const limit=Number($('newCatLimit').value||0);if(!Number.isFinite(limit)||limit<0){alert('Ingresa un límite válido, igual o mayor que cero.');return}data.categories.push(name);data.budgets[name]=limit;$('newCat').value='';$('newCatLimit').value='';save();render()};
+$('newCat').addEventListener('keydown',e=>{if(e.key==='Enter')$('addCat').click()});$('newCatLimit').addEventListener('keydown',e=>{if(e.key==='Enter')$('addCat').click()});
+function m(){return $('month').value||monthNow}function ts(){return data.transactions.filter(t=>t.date.startsWith(m()))}function extraIncomes(){if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];return data.additionalIncomes.filter(x=>x.date&&x.date.startsWith(m()))}function extraIncomeTotal(){return extraIncomes().reduce((s,x)=>s+(Number(x.amount)||0),0)}
+function spent(){return ts().filter(t=>t.kind==='gasto').reduce((s,t)=>s+t.amount,0)}
+function sav(){return ts().filter(t=>t.kind==='ahorro').reduce((s,t)=>s+t.amount,0)}
+function render(){
+ let baseInc=Number(data.incomes[m()]||0),extraTotal=extraIncomeTotal(),inc=baseInc+extraTotal,sp=spent(),sv=sav(),left=inc-sp-sv;
+ renderCategories();$('income').value=data.incomes[m()]??'';$('mIncome').textContent=money(inc);$('extraTotal').textContent=money(extraTotal);
+ const extraList=$('extraIncomeList');extraList.innerHTML='';
+ const monthExtras=extraIncomes().sort((a,b)=>b.date.localeCompare(a.date));
+ monthExtras.forEach(x=>{const item=document.createElement('div');item.className='income-item';const info=document.createElement('div');const title=document.createElement('strong');title.textContent=x.desc;const date=document.createElement('small');date.textContent=x.date;info.append(title,date);const amount=document.createElement('b');amount.textContent=money(x.amount);const btn=document.createElement('button');btn.className='alt';btn.textContent='Eliminar';btn.setAttribute('aria-label','Eliminar ingreso adicional: '+x.desc);btn.onclick=()=>{if(confirm('¿Eliminar este ingreso adicional?')){data.additionalIncomes=data.additionalIncomes.filter(y=>y.id!==x.id);save();render()}};item.append(info,amount,btn);extraList.appendChild(item)});
+ $('extraEmpty').style.display=monthExtras.length?'none':'block';$('mSpent').textContent=money(sp);$('mSave').textContent=money(sv);$('mLeft').textContent=money(left);$('mLeft').style.color=left<0?'#b42318':'#18794e';
+ $('summary').textContent=inc?`Después de los movimientos registrados, te quedan ${money(left)} sin asignar.`:'Ingresa tu depósito líquido para ver cuánto tienes disponible.';
+ let budget=$('budget');budget.innerHTML='';
+ let t=ts(), rows=[...fixed.filter(([name])=>data.categories.includes(name)).map(([name,limit])=>({name,limit,actual:t.filter(x=>x.kind==='gasto'&&x.cat===name).reduce((s,x)=>s+x.amount,0)})),{name:'Ahorro personal sugerido',limit:Math.min(60,Math.max(0,inc-fixed.filter(([name])=>data.categories.includes(name)).reduce((s,x)=>s+x[1],0))),actual:sv},...Object.entries(data.budgets).filter(([name])=>data.categories.includes(name)&&!fixed.some(x=>x[0]===name)).map(([name,limit])=>({name,limit,actual:t.filter(x=>x.kind==='gasto'&&x.cat===name).reduce((s,x)=>s+x.amount,0)}))];
+ rows.forEach(r=>{let line=document.createElement('div');line.className='line';let a=document.createElement('span');a.textContent=r.name;let b=document.createElement('b');b.textContent=money(r.actual)+' / '+money(r.limit);line.append(a,b);budget.appendChild(line);let bar=document.createElement('div');bar.className='bar';let fill=document.createElement('span');fill.style.width=(r.limit?Math.min(100,r.actual/r.limit*100):0)+'%';if(r.actual>r.limit)fill.style.background='#b42318';bar.appendChild(fill);budget.appendChild(bar)});
+ let body=$('rows');body.innerHTML='';t.sort((a,b)=>b.date.localeCompare(a.date)).forEach(x=>{let tr=document.createElement('tr');[x.date,x.desc,x.cat,x.kind==='ahorro'?'Ahorro':'Gasto',money(x.amount)].forEach(v=>{let td=document.createElement('td');td.textContent=v;tr.appendChild(td)});let td=document.createElement('td'),btn=document.createElement('button');btn.className='alt';btn.textContent='Eliminar';btn.onclick=()=>{data.transactions=data.transactions.filter(y=>y.id!==x.id);save();render()};td.appendChild(btn);tr.appendChild(td);body.appendChild(tr)});$('empty').style.display=t.length?'none':'block';
+}
+$('month').onchange=render;$('saveIncome').onclick=()=>{let n=Number($('income').value);if($('income').value.trim()===''||!Number.isFinite(n)||n<0){alert('Ingresa un ingreso válido');return}data.incomes[m()]=n;save();render()};
+$('addExtraIncome').onclick=()=>{const date=$('extraDate').value,desc=$('extraDesc').value.trim(),raw=$('extraAmount').value,amount=Number(raw);if(!date||!desc||raw.trim()===''||!Number.isFinite(amount)||amount<=0){alert('Completa fecha, descripción y un valor mayor que cero.');return}if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];data.additionalIncomes.push({id:Date.now()+Math.random(),date,desc,amount});save();$('extraDesc').value='';$('extraAmount').value='';render()};
+$('extraDesc').addEventListener('keydown',e=>{if(e.key==='Enter')$('addExtraIncome').click()});
+$('add').onclick=()=>{let amount=Number($('amount').value),desc=$('desc').value.trim(),date=$('date').value;if(!date||!desc||!Number.isFinite(amount)||amount<=0){alert('Completa fecha, descripción y valor mayor que cero');return}data.transactions.push({id:Date.now()+Math.random(),date,desc,cat:$('cat').value,amount,kind:$('kind').value});save();$('desc').value='';$('amount').value='';render()};
+
+function download(content,name,type){let u=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
+$('csv').onclick=()=>{let lines=[['Fecha','Descripción','Categoría','Tipo','Valor'],...ts().map(t=>[t.date,t.desc,t.cat,t.kind,t.amount]),...extraIncomes().map(x=>[x.date,x.desc,'Ingresos adicionales','ingreso adicional',x.amount])];download('\ufeff'+lines.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n'),'movimientos-'+m()+'.csv','text/csv;charset=utf-8')};
+$('backup').onclick=()=>download(JSON.stringify(data,null,2),'copia-mi-presupuesto.json','application/json');
+$('restoreBtn').onclick=()=>$('restore').click();$('restore').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!d.incomes||!Array.isArray(d.transactions)||!d.budgets)throw 0;data={...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[]};save();render();alert('Copia restaurada')}catch(err){alert('Archivo de copia no válido')}e.target.value=''};
+$('clear').onclick=()=>{if(confirm('¿Borrar los movimientos y los ingresos adicionales del mes seleccionado?')){data.transactions=data.transactions.filter(t=>!t.date.startsWith(m()));data.additionalIncomes=(data.additionalIncomes||[]).filter(x=>!x.date.startsWith(m()));save();render()}};
+function showPage(name){
+ document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
+ document.querySelectorAll('.nav-item').forEach(b=>{const active=b.dataset.page===name;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false')});
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+render();
+initCloud();
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
+</script></body></html>

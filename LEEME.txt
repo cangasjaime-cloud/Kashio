@@ -1,0 +1,38 @@
+MI PRESUPUESTO — VERSIÓN WEB CON SINCRONIZACIÓN EN LA NUBE
+
+QUÉ INCLUYE
+- Diseño adaptado a celulares y computadoras.
+- Cuenta con correo y contraseña.
+- Sincronización privada por usuario mediante Supabase.
+- Copia de seguridad JSON y exportación CSV.
+- Archivos para instalar como aplicación web (PWA).
+
+IMPORTANTE
+Esta carpeta es un paquete listo para configurar y publicar, pero aún no está en internet. Para que funcione entre dispositivos debes configurar Supabase y publicarla en un hosting HTTPS. No compartas tu contraseña ni la clave service_role de Supabase. La clave anon/publishable del navegador sí se usa en config.js; RLS protege los registros.
+
+PASO 1 — CREAR LA BASE DE DATOS Y EL ACCESO
+1. Crea una cuenta en https://supabase.com/ y crea un proyecto nuevo. El plan gratuito suele bastar para uso personal; revisa sus límites vigentes.
+2. En Project Settings / API, copia la Project URL y la clave anon/publishable.
+3. Edita config.js y reemplaza TU_PROYECTO y TU_CLAVE_ANON_O_PUBLISHABLE con esos valores. No pongas una clave service_role.
+4. En el SQL Editor de Supabase, ejecuta todo el contenido de supabase_schema.sql.
+5. En Authentication > URL Configuration, después de publicar, añade la URL pública de tu app a Site URL y Redirect URLs.
+6. En Authentication > Providers > Email, deja habilitado Email. Si exige confirmar correo, confirma el correo que usarás para entrar.
+
+PASO 2 — PUBLICAR
+1. Sube los archivos de esta carpeta a un hosting estático HTTPS, por ejemplo Netlify o Cloudflare Pages, o a un repositorio de GitHub y GitHub Pages. Publica la carpeta completa conservando los nombres de archivo.
+2. La dirección pública que te entregue el hosting será el enlace de Mi Presupuesto. Ábrelo desde tu celular y usa “Añadir a pantalla de inicio” desde el menú del navegador para instalarla.
+3. Para usarla en otro celular o navegador, abre el mismo enlace e inicia sesión con la misma cuenta.
+
+PASO 3 — MIGRAR LOS DATOS ANTERIORES (MUY IMPORTANTE)
+1. Abre la versión antigua en el dispositivo/navegador donde están los datos. En Ajustes, pulsa “Copia de seguridad” y guarda el archivo copia-mi-presupuesto.json.
+2. Abre la nueva versión publicada. Inicia sesión o crea la cuenta.
+3. En Ajustes, pulsa “Restaurar copia” y elige ese archivo JSON. La restauración guardará los datos en ese dispositivo y los sincronizará con la nube.
+4. Comprueba los ingresos, movimientos, categorías y presupuestos antes de dejar de usar la versión antigua. Conserva el JSON como respaldo.
+
+CÓMO FUNCIONA LA PRIVACIDAD
+- La tabla solo permite a cada usuario autenticado leer o modificar su propio registro, mediante políticas Row Level Security (RLS).
+- No compartas la cuenta si quieres mantener los datos privados. Activa una contraseña única y protege el acceso al correo.
+- Si olvidas la contraseña, usa la recuperación de contraseña de Supabase o añade ese flujo antes de publicar para producción.
+
+LIMITACIÓN DE ESTA ENTREGA
+No puedo crear la cuenta de Supabase ni publicar en tus cuentas externas por ti desde aquí. Los archivos sí están preparados, pero requieren tus credenciales de proyecto y publicación. La sincronización no funcionará hasta completar los pasos 1 y 2.
