@@ -197,16 +197,19 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.
 
 
 
- // --- AUTOCATEGORIZACIÓN DE MOVIMIENTOS ---
-// Mapeo de palabras clave con el nombre exacto de tus categorías
+// --- AUTOCATEGORIZACIÓN MEJORADA DE MOVIMIENTOS ---
 const reglasCategorias = [
   {
+    categoria: 'Salidas con mi novia',
+    palabras: ['melany', 'mel', 'cena con mel', 'almuerzo con mel', 'salida con mel', 'novia', 'cita', 'flores', 'solsito', 'regalo melany', 'postre', 'helado']
+  },
+  {
     categoria: 'Ahorro conjunto con novia',
-    palabras: ['novia', 'melany', 'salida con melany', 'cita', 'flores', 'solsito', 'regalo melany']
+    palabras: ['ahorro melany', 'ahorro novia', 'ahorro con mel']
   },
   {
     categoria: 'Gasolina',
-    palabras: ['gasolina', 'combustible', 'gasolinera', 'extra', 'super', 'disel', 'diesel', 'gas']
+    palabras: ['gasolina', 'combustible', 'gasolinera', 'extra', 'super', 'disel', 'diesel']
   },
   {
     categoria: 'Comida del gato',
@@ -214,19 +217,15 @@ const reglasCategorias = [
   },
   {
     categoria: 'Gastos de la casa',
-    palabras: ['arriendo', 'alquiler', 'luz', 'agua', 'internet', 'gas', 'almacen el perno', 'el perno', 'supermercado', 'aki', 'gran aki', 'aki ibarra']
+    palabras: ['arriendo', 'alquiler', 'luz', 'agua', 'internet', 'gas', 'almacen el perno', 'el perno', 'supermercado', 'aki', 'gran aki']
   },
   {
     categoria: 'Plan celular',
     palabras: ['celular', 'plan', 'saldo', 'claro', 'movistar', 'cnt', 'tuenti']
   },
   {
-    categoria: 'Salidas con mi novia',
-    palabras: ['restaurante', 'almuerzo con melany', 'cena melany', 'helado melany', 'postre']
-  },
-  {
     categoria: 'Salidas con amigos',
-    palabras: ['amigos', 'reunion', 'parrillada', 'pola', 'cerveza', 'salida']
+    palabras: ['amigos', 'reunion', 'parrillada', 'pola', 'cerveza']
   },
   {
     categoria: 'Golosinas/antojos',
@@ -242,7 +241,6 @@ const reglasCategorias = [
   }
 ];
 
-// Función para detectar la categoría automáticamente
 function autoAsignarCategoria() {
   const descInput = document.getElementById('desc');
   const catSelect = document.getElementById('cat');
@@ -253,9 +251,10 @@ function autoAsignarCategoria() {
 
   for (const regla of reglasCategorias) {
     if (regla.palabras.some(palabra => texto.includes(palabra))) {
-      // Verificar si la categoría existe dentro de los options de tu select
-      const existeOption = Array.from(catSelect.options).some(opt => opt.value === regla.categoria);
-      if (existeOption) {
+      // Buscar la opción exacta dentro del selector
+      const options = Array.from(catSelect.options);
+      const targetOption = options.find(opt => opt.value === regla.categoria);
+      if (targetOption) {
         catSelect.value = regla.categoria;
       }
       break;
@@ -263,11 +262,22 @@ function autoAsignarCategoria() {
   }
 }
 
-// Escuchar evento mientras escribes en el campo de descripción
-const inputDesc = document.getElementById('desc');
-if (inputDesc) {
-  inputDesc.addEventListener('input', autoAsignarCategoria);
+// Vincular el evento input de forma segura
+document.addEventListener('DOMContentLoaded', () => {
+  const inputDesc = document.getElementById('desc');
+  if (inputDesc) {
+    inputDesc.addEventListener('input', autoAsignarCategoria);
+  }
+});
+
+// Por si el DOM ya estaba cargado al ejecutar el script
+const inputDescDirect = document.getElementById('desc');
+if (inputDescDirect) {
+  inputDescDirect.addEventListener('input', autoAsignarCategoria);
 }
+
+
+ 
 
 // Coloca esto en tu código JavaScript para detectar cuando Supabase redirige tras confirmar
 window.addEventListener('DOMContentLoaded', () => {
