@@ -300,21 +300,6 @@ function autoAsignarCategoria() {
   }
 }
 
-// Atașarea corectă a evenimentului
-function inicializarAutoCategorizacion() {
-  const inputDesc = document.getElementById('desc');
-  if (inputDesc) {
-    inputDesc.removeEventListener('input', autoAsignarCategoria);
-    inputDesc.addEventListener('input', autoAsignarCategoria);
-  }
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', inicializarAutoCategorizacion);
-} else {
-  inicializarAutoCategorizacion();
-}
-
 
 // FIN CATEGORIZACION
 
