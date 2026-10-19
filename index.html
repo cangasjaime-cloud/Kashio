@@ -245,27 +245,31 @@ const reglasCategorias = [
 function autoAsignarCategoria() {
   const descInput = document.getElementById('desc');
   const catSelect = document.getElementById('cat');
-  const kindSelect = document.getElementById('kind'); // Selector de tipo (Gasto / Ahorro personal)
+  const kindSelect = document.getElementById('kind');
   if (!descInput || !catSelect) return;
 
   const texto = descInput.value.toLowerCase().trim();
   if (!texto) return;
 
   // 1. Detección especial para Ahorro
-  if (texto === 'ahorro' || texto === 'ahorro personal' || texto.includes('guardar ahorro')) {
+  if (texto === 'ahorro' || texto === 'ahorro personal' || texto.includes('guardar ahorro') || texto.includes('ahorro')) {
     if (kindSelect) {
-      kindSelect.value = 'ahorro'; // Cambia automáticamente a Ahorro personal
+      kindSelect.value = 'ahorro'; // Cambia a Ahorro personal
+      kindSelect.dispatchEvent(new Event('change')); // Fuerza al navegador a actualizar la vista
     }
-    // Si tienes una categoría específica para ahorro, puedes seleccionarla aquí:
+    
+    // Buscar la categoría que contenga la palabra "ahorro" (ej. "Ahorro personal")
     const targetOpt = Array.from(catSelect.options).find(opt => opt.value.toLowerCase().includes('ahorro'));
     if (targetOpt) {
       catSelect.value = targetOpt.value;
+      catSelect.dispatchEvent(new Event('change')); // Fuerza actualización visual
     }
-    return; // Salimos para que no busque en las demás reglas de gastos
+    return; // Sale para no aplicar reglas de gasto
   } else {
-    // Si es cualquier otro gasto, nos aseguramos de que el tipo vuelva a ser "gasto" por defecto
-    if (kindSelect) {
+    // Si es un gasto normal, aseguramos que el tipo vuelva a ser "gasto"
+    if (kindSelect && kindSelect.value !== 'gasto') {
       kindSelect.value = 'gasto';
+      kindSelect.dispatchEvent(new Event('change'));
     }
   }
 
@@ -278,6 +282,7 @@ function autoAsignarCategoria() {
       const targetOption = options.find(opt => opt.value === regla.categoria);
       if (targetOption) {
         catSelect.value = regla.categoria;
+        targetOption.dispatchEvent(new Event('change'));
         encontrada = true;
       }
       break;
@@ -290,6 +295,7 @@ function autoAsignarCategoria() {
     const fallbackOption = options.find(opt => opt.value.toLowerCase() === 'gastos varios');
     if (fallbackOption) {
       catSelect.value = fallbackOption.value;
+      fallbackOption.dispatchEvent(new Event('change'));
     }
   }
 }
