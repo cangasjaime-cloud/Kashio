@@ -180,6 +180,22 @@ $('addExtraIncome').onclick=()=>{const date=$('extraDate').value,desc=$('extraDe
 $('extraDesc').addEventListener('keydown',e=>{if(e.key==='Enter')$('addExtraIncome').click()});
 $('add').onclick=()=>{let amount=Number($('amount').value),desc=$('desc').value.trim(),date=$('date').value;if(!date||!desc||!Number.isFinite(amount)||amount<=0){alert('Completa fecha, descripción y valor mayor que cero');return}data.transactions.push({id:Date.now()+Math.random(),date,desc,cat:$('cat').value,amount,kind:$('kind').value});save();$('desc').value='';$('amount').value='';render()};
 
+// Permitir guardar el movimiento al presionar Enter en los campos del formulario
+['date', 'desc', 'amount'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) {
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault(); // Evita recargar la página o comportamientos extraños
+        document.getElementById('add').click(); // Simula el clic en "Añadir movimiento"
+      }
+    });
+  }
+});
+
+ // FIN Permitir guardar el movimiento al presionar Enter en los campos del formulario
+
+ 
 function download(content,name,type){let u=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
 $('csv').onclick=()=>{let lines=[['Fecha','Descripción','Categoría','Tipo','Valor'],...ts().map(t=>[t.date,t.desc,t.cat,t.kind,t.amount]),...extraIncomes().map(x=>[x.date,x.desc,'Ingresos adicionales','ingreso adicional',x.amount])];download('\ufeff'+lines.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n'),'movimientos-'+m()+'.csv','text/csv;charset=utf-8')};
 $('backup').onclick=()=>download(JSON.stringify(data,null,2),'copia-mi-presupuesto.json','application/json');
