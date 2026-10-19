@@ -201,12 +201,12 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.
 // --- AUTOCATEGORIZACION ---
 const reglasCategorias = [
   {
-    categoria: 'Salidas con mi novia',
-    palabras: ['melany', 'mel', 'solsito', 'cita', 'flores', 'regalo melany']
-  },
-  {
     categoria: 'Ahorro conjunto con novia',
     palabras: ['ahorro melany', 'ahorro novia', 'ahorro con mel']
+  },
+  {
+    categoria: 'Salidas con mi novia',
+    palabras: ['melany', 'mel', 'solsito', 'cita', 'flores', 'regalo melany']
   },
   {
     categoria: 'Gasolina',
@@ -251,22 +251,24 @@ function autoAsignarCategoria() {
   const texto = descInput.value.toLowerCase().trim();
   if (!texto) return;
 
-  // 1. Detección especial para Ahorro
-  if (texto === 'ahorro' || texto === 'ahorro personal' || texto.includes('guardar ahorro') || texto.includes('ahorro')) {
+  // 1. Detección exclusiva para Ahorro Personal (evitando que afecte a "ahorro melany")
+  const esAhorroPersonal = (texto === 'ahorro' || texto === 'ahorro personal' || texto === 'guardar ahorro') && !texto.includes('melany') && !texto.includes('novia');
+
+  if (esAhorroPersonal) {
     if (kindSelect) {
-      kindSelect.value = 'ahorro'; // Cambia a Ahorro personal
-      kindSelect.dispatchEvent(new Event('change')); // Fuerza al navegador a actualizar la vista
+      kindSelect.value = 'ahorro'; 
+      kindSelect.dispatchEvent(new Event('change')); 
     }
     
-    // Buscar la categoría que contenga la palabra "ahorro" (ej. "Ahorro personal")
-    const targetOpt = Array.from(catSelect.options).find(opt => opt.value.toLowerCase().includes('ahorro'));
+    // Buscar específicamente "Ahorro personal"
+    const targetOpt = Array.from(catSelect.options).find(opt => opt.value.toLowerCase() === 'ahorro personal');
     if (targetOpt) {
       catSelect.value = targetOpt.value;
-      catSelect.dispatchEvent(new Event('change')); // Fuerza actualización visual
+      catSelect.dispatchEvent(new Event('change')); 
     }
-    return; // Sale para no aplicar reglas de gasto
+    return; 
   } else {
-    // Si es un gasto normal, aseguramos que el tipo vuelva a ser "gasto"
+    // Si es un gasto normal o un ahorro con la novia, aseguramos que el tipo sea "gasto"
     if (kindSelect && kindSelect.value !== 'gasto') {
       kindSelect.value = 'gasto';
       kindSelect.dispatchEvent(new Event('change'));
@@ -275,7 +277,7 @@ function autoAsignarCategoria() {
 
   let encontrada = false;
 
-  // 2. Buscar coincidencias en las reglas normales de gastos
+  // 2. Buscar coincidencias en las reglas normales (aquí evaluará "ahorro melany" correctamente)
   for (const regla of reglasCategorias) {
     if (regla.palabras.some(palabra => texto.includes(palabra))) {
       const options = Array.from(catSelect.options);
@@ -300,6 +302,12 @@ function autoAsignarCategoria() {
   }
 }
 
+// Vincular el evento input de manera segura
+const inputDesc = document.getElementById('desc');
+if (inputDesc) {
+  inputDesc.removeEventListener('input', autoAsignarCategoria);
+  inputDesc.addEventListener('input', autoAsignarCategoria);
+}
 
 // FIN CATEGORIZACION
 
