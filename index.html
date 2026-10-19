@@ -197,11 +197,12 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.
 
 
 
-// --- AUTOCATEGORIZACIÓN MEJORADA DE MOVIMIENTOS ---
+// --- AUTOCATEGORIZACIÓN CORREGIDA (Prioridad a palabras específicas) ---
 const reglasCategorias = [
+  // 1. Primero las específicas (nombre de personas, marcas, etc.)
   {
     categoria: 'Salidas con mi novia',
-    palabras: ['melany', 'mel', 'cena con mel', 'almuerzo con mel', 'salida con mel', 'novia', 'cita', 'flores', 'solsito', 'regalo melany', 'postre', 'helado']
+    palabras: ['melany', 'mel', 'solsito', 'cita', 'flores', 'regalo melany']
   },
   {
     categoria: 'Ahorro conjunto con novia',
@@ -217,7 +218,7 @@ const reglasCategorias = [
   },
   {
     categoria: 'Gastos de la casa',
-    palabras: ['arriendo', 'alquiler', 'luz', 'agua', 'internet', 'gas', 'almacen el perno', 'el perno', 'supermercado', 'aki', 'gran aki']
+    palabras: ['arriendo', 'alquiler', 'luz', 'agua', 'internet', 'almacen el perno', 'el perno', 'supermercado', 'aki', 'gran aki']
   },
   {
     categoria: 'Plan celular',
@@ -228,16 +229,17 @@ const reglasCategorias = [
     palabras: ['amigos', 'reunion', 'parrillada', 'pola', 'cerveza']
   },
   {
-    categoria: 'Golosinas/antojos',
-    palabras: ['almuerzo', 'desayuno', 'cena', 'comida', 'snack', 'antojo', 'dulce', 'café', 'cafe']
-  },
-  {
     categoria: 'Zapatos',
     palabras: ['zapatos', 'zapatillas', 'calzado', 'botas']
   },
   {
     categoria: 'Ropa',
     palabras: ['ropa', 'camisa', 'pantalon', 'pantalón', 'chaqueta', 'buzo']
+  },
+  // 2. Al final las generales (almuerzo, cena, comida) para que no intercepten antes a "Mel"
+  {
+    categoria: 'Golosinas/antojos',
+    palabras: ['almuerzo', 'desayuno', 'cena', 'comida', 'snack', 'antojo', 'dulce', 'café', 'cafe']
   }
 ];
 
@@ -251,7 +253,6 @@ function autoAsignarCategoria() {
 
   for (const regla of reglasCategorias) {
     if (regla.palabras.some(palabra => texto.includes(palabra))) {
-      // Buscar la opción exacta dentro del selector
       const options = Array.from(catSelect.options);
       const targetOption = options.find(opt => opt.value === regla.categoria);
       if (targetOption) {
@@ -270,12 +271,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Por si el DOM ya estaba cargado al ejecutar el script
 const inputDescDirect = document.getElementById('desc');
 if (inputDescDirect) {
   inputDescDirect.addEventListener('input', autoAsignarCategoria);
 }
-
 
  
 
