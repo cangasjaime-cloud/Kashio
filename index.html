@@ -197,6 +197,78 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.
 
 
 
+ // --- AUTOCATEGORIZACIÓN DE MOVIMIENTOS ---
+// Mapeo de palabras clave con el nombre exacto de tus categorías
+const reglasCategorias = [
+  {
+    categoria: 'Ahorro conjunto con novia',
+    palabras: ['novia', 'melany', 'salida con melany', 'cita', 'flores', 'solsito', 'regalo melany']
+  },
+  {
+    categoria: 'Gasolina',
+    palabras: ['gasolina', 'combustible', 'gasolinera', 'extra', 'super', 'disel', 'diesel', 'gas']
+  },
+  {
+    categoria: 'Comida del gato',
+    palabras: ['gato', 'gatito', 'comida gato', 'arena', 'cat', 'nucita', 'veterinario']
+  },
+  {
+    categoria: 'Gastos de la casa',
+    palabras: ['arriendo', 'alquiler', 'luz', 'agua', 'internet', 'gas', 'almacen el perno', 'el perno', 'supermercado', 'aki', 'gran aki', 'aki ibarra']
+  },
+  {
+    categoria: 'Plan celular',
+    palabras: ['celular', 'plan', 'saldo', 'claro', 'movistar', 'cnt', 'tuenti']
+  },
+  {
+    categoria: 'Salidas con mi novia',
+    palabras: ['restaurante', 'almuerzo con melany', 'cena melany', 'helado melany', 'postre']
+  },
+  {
+    categoria: 'Salidas con amigos',
+    palabras: ['amigos', 'reunion', 'parrillada', 'pola', 'cerveza', 'salida']
+  },
+  {
+    categoria: 'Golosinas/antojos',
+    palabras: ['almuerzo', 'desayuno', 'cena', 'comida', 'snack', 'antojo', 'dulce', 'café', 'cafe']
+  },
+  {
+    categoria: 'Zapatos',
+    palabras: ['zapatos', 'zapatillas', 'calzado', 'botas']
+  },
+  {
+    categoria: 'Ropa',
+    palabras: ['ropa', 'camisa', 'pantalon', 'pantalón', 'chaqueta', 'buzo']
+  }
+];
+
+// Función para detectar la categoría automáticamente
+function autoAsignarCategoria() {
+  const descInput = document.getElementById('desc');
+  const catSelect = document.getElementById('cat');
+  if (!descInput || !catSelect) return;
+
+  const texto = descInput.value.toLowerCase().trim();
+  if (!texto) return;
+
+  for (const regla of reglasCategorias) {
+    if (regla.palabras.some(palabra => texto.includes(palabra))) {
+      // Verificar si la categoría existe dentro de los options de tu select
+      const existeOption = Array.from(catSelect.options).some(opt => opt.value === regla.categoria);
+      if (existeOption) {
+        catSelect.value = regla.categoria;
+      }
+      break;
+    }
+  }
+}
+
+// Escuchar evento mientras escribes en el campo de descripción
+const inputDesc = document.getElementById('desc');
+if (inputDesc) {
+  inputDesc.addEventListener('input', autoAsignarCategoria);
+}
+
 // Coloca esto en tu código JavaScript para detectar cuando Supabase redirige tras confirmar
 window.addEventListener('DOMContentLoaded', () => {
   // Supabase suele mandar un hash con el tipo de acción o un token de acceso
