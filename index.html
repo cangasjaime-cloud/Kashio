@@ -195,3 +195,18 @@ render();
 initCloud();
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
 </script></body></html>
+
+
+// Coloca esto en tu código JavaScript para detectar cuando Supabase redirige tras confirmar
+window.addEventListener('DOMContentLoaded', () => {
+  // Supabase suele mandar un hash con el tipo de acción o un token de acceso
+  const hash = window.location.hash;
+  
+  if (hash && (hash.includes('type=signup') || hash.includes('access_token'))) {
+    // Aquí puedes mostrar un mensaje en pantalla de forma elegante
+    alert("¡Cuenta confirmada y creada correctamente! Ya puedes usar tu presupuesto.");
+    
+    // O si prefieres mostrarlo en un elemento HTML de tu página:
+    // document.getElementById('mensaje-exito').innerText = "¡Cuenta confirmada con éxito!";
+  }
+});
