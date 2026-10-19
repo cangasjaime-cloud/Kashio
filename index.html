@@ -208,7 +208,8 @@ function cardName(id){return cardObj(id).name|| (id==='card1'?'Tarjeta principal
 function addMonthsISO(date,months){const d=new Date(date+'T12:00:00');d.setMonth(d.getMonth()+months);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function cycleFor(date,id){const c=cardObj(id),day=Number(c.cutoff)||13,parts=date.split('-').map(Number);let y=parts[0],mo=parts[1],dd=parts[2];if(dd>day){mo++;if(mo>12){mo=1;y++}}const cutoffDate=y+'-'+String(mo).padStart(2,'0')+'-'+String(day).padStart(2,'0');let dueY=y,dueM=mo;if(Number(c.due)<=day && dd>day){dueM++;if(dueM>12){dueM=1;dueY++}}const dueDate=dueY+'-'+String(dueM).padStart(2,'0')+'-'+String(Number(c.due)||28).padStart(2,'0');return {cutoff:cutoffDate,due:dueDate}}
 function cardBalance(id){const c=cardObj(id),buys=(data.cardPurchases||[]).filter(x=>x.card===id).reduce((s,x)=>s+(Number(x.amount)||0),0),pays=(data.cardPayments||[]).filter(x=>x.card===id).reduce((s,x)=>s+(Number(x.amount)||0),0);return Math.max(0,(Number(c.openingBalance)||0)+buys-pays)}
-function renderCards(){if(!document.getElementById('cardSummary'))return;const summary=$('cardSummary');summary.innerHTML='';['card1','card2'].forEach(id=>{const c=cardObj(id),balance=cardBalance(id),available=Math.max(0,(Number(c.limit)||0)-balance);const box=document.createElement('div');box.className='stat';box.innerHTML='<small></small><strong></strong><small></small><small></small>';box.children[0].textContent=cardName(id);box.children[1].textContent=money(balance)+' pendiente';box.children[2].textContent='Cupo disponible: '+money(available);box.children[3].textContent='Corte día '+c.cutoff+' · pago día '+c.due;summary.appendChild(box)});
+function refreshCardSelects(){[['ccPurchaseCard','card1','card2'],['ccPaymentCard','card1','card2']].forEach(([selectId,...ids])=>{const sel=$(selectId);if(!sel)return;const old=sel.value;sel.innerHTML='';ids.forEach(id=>{const opt=document.createElement('option');opt.value=id;opt.textContent=cardName(id);sel.appendChild(opt)});if(ids.includes(old))sel.value=old;});}
+function renderCards(){if(!document.getElementById('cardSummary'))return;refreshCardSelects();const summary=$('cardSummary');summary.innerHTML='';['card1','card2'].forEach(id=>{const c=cardObj(id),balance=cardBalance(id),available=Math.max(0,(Number(c.limit)||0)-balance);const box=document.createElement('div');box.className='stat';box.innerHTML='<small></small><strong></strong><small></small><small></small>';box.children[0].textContent=cardName(id);box.children[1].textContent=money(balance)+' pendiente';box.children[2].textContent='Cupo disponible: '+money(available);box.children[3].textContent='Corte día '+c.cutoff+' · pago día '+c.due;summary.appendChild(box)});
  const cat=$('ccPurchaseCat'),old=cat.value;cat.innerHTML='';data.categories.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;cat.appendChild(o)});if(data.categories.includes(old))cat.value=old;
  const body=$('ccRows');body.innerHTML='';const events=[...(data.cardPurchases||[]).map(x=>({...x,eventType:'Compra'})),...(data.cardPayments||[]).map(x=>({...x,eventType:'Pago',amount:-Number(x.amount||0),mode:'pago',desc:x.note||'Pago a tarjeta'}))].sort((a,b)=>b.date.localeCompare(a.date));events.forEach(x=>{const tr=document.createElement('tr'),period=x.eventType==='Compra'?(x.cutoff+' / '+x.due):'—';[x.date,cardName(x.card),x.eventType+(x.mode==='diferido'?' diferido':x.mode==='corriente'?' corriente':''),x.desc||x.note||'',period,money(x.amount)].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td)});const td=document.createElement('td'),btn=document.createElement('button');btn.className='alt';btn.textContent='Eliminar';btn.onclick=()=>{if(!confirm('¿Eliminar este registro?'))return;if(x.eventType==='Compra'){data.cardPurchases=data.cardPurchases.filter(y=>y.id!==x.id);data.transactions=data.transactions.filter(y=>y.cardPurchaseId!==x.id)}else data.cardPayments=data.cardPayments.filter(y=>y.id!==x.id);save();render();renderCards()};td.appendChild(btn);tr.appendChild(td);body.appendChild(tr)});$('ccEmpty').style.display=events.length?'none':'block';
  const date=$('ccPurchaseDate').value||dateNow;if(!$('ccPurchaseDate').value)$('ccPurchaseDate').value=dateNow;if(!$('ccPaymentDate').value)$('ccPaymentDate').value=dateNow;const cyc=cycleFor(date,$('ccPurchaseCard').value);$('ccCyclePreview').textContent='Esta compra entraría al corte del '+cyc.cutoff+' y tendría fecha de pago '+cyc.due+'.';$('ccInstallmentFields').hidden=$('ccPurchaseMode').value!=='diferido';
@@ -335,6 +336,32 @@ const inputDesc = document.getElementById('desc');
 if (inputDesc) {
   inputDesc.removeEventListener('input', autoAsignarCategoria);
   inputDesc.addEventListener('input', autoAsignarCategoria);
+}
+
+// Autocategorización también para las compras con tarjeta
+function autoAsignarCategoriaTarjeta() {
+  const descInput = document.getElementById('ccPurchaseDesc');
+  const catSelect = document.getElementById('ccPurchaseCat');
+  if (!descInput || !catSelect) return;
+  const texto = descInput.value.toLowerCase().trim();
+  if (!texto) return;
+  let encontrada = false;
+  for (const regla of reglasCategorias) {
+    if (regla.palabras.some(palabra => texto.includes(palabra))) {
+      const opcion = Array.from(catSelect.options).find(opt => opt.value === regla.categoria);
+      if (opcion) { catSelect.value = opcion.value; encontrada = true; }
+      break;
+    }
+  }
+  if (!encontrada) {
+    const fallback = Array.from(catSelect.options).find(opt => opt.value.toLowerCase() === 'gastos varios');
+    if (fallback) catSelect.value = fallback.value;
+  }
+}
+const ccDescInput = document.getElementById('ccPurchaseDesc');
+if (ccDescInput) {
+  ccDescInput.removeEventListener('input', autoAsignarCategoriaTarjeta);
+  ccDescInput.addEventListener('input', autoAsignarCategoriaTarjeta);
 }
 
 // FIN CATEGORIZACION
