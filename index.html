@@ -251,8 +251,8 @@ function autoAsignarCategoria() {
   const texto = descInput.value.toLowerCase().trim();
   if (!texto) return;
 
-  // 1. Detección especial para Ahorro general ("ahorro" o "ahorro personal")
-  if (texto === 'ahorro' || texto === 'ahorro personal' || texto === 'guardar ahorro') || texto === 'Ahorro') || texto === 'AHORRO') {
+  // 1. Detección flexible: si empieza con "ahorro" (ej. "ahorro", "ahorro personal", "ahorro viaje")
+  if (texto.startsWith('ahorro') || texto.includes('guardar ahorro')) {
     if (kindSelect) {
       kindSelect.value = 'ahorro'; // Cambia el tipo a Ahorro personal
       kindSelect.dispatchEvent(new Event('change'));
@@ -264,7 +264,7 @@ function autoAsignarCategoria() {
       catSelect.value = targetOpt.value;
       catSelect.dispatchEvent(new Event('change'));
     }
-    return; 
+    return; // Sale para no aplicar reglas de gasto
   } else {
     // Si es un gasto normal, aseguramos que el tipo vuelva a ser "gasto"
     if (kindSelect && kindSelect.value !== 'gasto') {
@@ -275,7 +275,7 @@ function autoAsignarCategoria() {
 
   let encontrada = false;
 
-  // 2. Buscar coincidencias en las reglas normales de gastos (incluyendo "ahorro melany", etc.)
+  // 2. Buscar coincidencias en las reglas normales de gastos
   for (const regla of reglasCategorias) {
     if (regla.palabras.some(palabra => texto.includes(palabra))) {
       const options = Array.from(catSelect.options);
