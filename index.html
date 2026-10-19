@@ -197,12 +197,11 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.
 
 
 
-// --- AUTOCATEGORIZACIÓN CORREGIDA (Prioridad a palabras específicas) ---
+// --- AUTOCATEGORIZACION ---
 const reglasCategorias = [
-  // 1. Primero las específicas (nombre de personas, marcas, etc.)
   {
     categoria: 'Salidas con mi novia',
-    palabras: ['melany', 'mel', 'cita', 'flores', 'regalo melany','MEL','Mel']
+    palabras: ['melany', 'mel', 'solsito', 'cita', 'flores', 'regalo melany']
   },
   {
     categoria: 'Ahorro conjunto con novia',
@@ -214,7 +213,7 @@ const reglasCategorias = [
   },
   {
     categoria: 'Comida del gato',
-    palabras: ['gato', 'gatito', 'comida gato', 'arena', 'cat', 'veterinario']
+    palabras: ['gato', 'gatito', 'comida gato', 'arena', 'cat', 'nucita', 'veterinario']
   },
   {
     categoria: 'Gastos de la casa',
@@ -222,17 +221,20 @@ const reglasCategorias = [
   },
   {
     categoria: 'Plan celular',
-    palabras: ['celular', 'plan', 'saldo', 'claro', 'movistar', 'cnt', 'tuenti','recarga','Recarga']
+    palabras: ['celular', 'plan', 'saldo', 'claro', 'movistar', 'cnt', 'tuenti']
   },
   {
     categoria: 'Salidas con amigos',
-    palabras: ['amigos', 'reunion', 'parrillada', 'cerveza']
+    palabras: ['amigos', 'reunion', 'parrillada', 'pola', 'cerveza']
+  },
+  {
+    categoria: 'Zapatos',
+    palabras: ['zapatos', 'zapatillas', 'calzado', 'botas']
   },
   {
     categoria: 'Ropa',
-    palabras: ['ropa', 'camisa', 'pantalon', 'pantalón', 'chaqueta', 'buzo','zapatos', 'zapatillas', 'calzado', 'botas']
+    palabras: ['ropa', 'camisa', 'pantalon', 'pantalón', 'chaqueta', 'buzo']
   },
-  // 2. Al final las generales (almuerzo, cena, comida) para que no intercepten antes a "Mel"
   {
     categoria: 'Golosinas/antojos',
     palabras: ['almuerzo', 'desayuno', 'cena', 'comida', 'snack', 'antojo', 'dulce', 'café', 'cafe']
@@ -245,48 +247,13 @@ function autoAsignarCategoria() {
   if (!descInput || !catSelect) return;
 
   const texto = descInput.value.toLowerCase().trim();
-  if (!texto) return;
 
-  for (const regla of reglasCategorias) {
-    if (regla.palabras.some(palabra => texto.includes(palabra))) {
-      const options = Array.from(catSelect.options);
-      const targetOption = options.find(opt => opt.value === regla.categoria);
-      if (targetOption) {
-        catSelect.value = regla.categoria;
-      }
-      break;
-    }
-  }
-}
-
-// Vincular el evento input de forma segura
-document.addEventListener('DOMContentLoaded', () => {
-  const inputDesc = document.getElementById('desc');
-  if (inputDesc) {
-    inputDesc.addEventListener('input', autoAsignarCategoria);
-  }
-});
-
-const inputDescDirect = document.getElementById('desc');
-if (inputDescDirect) {
-  inputDescDirect.addEventListener('input', autoAsignarCategoria);
-}
-
-
-
-
-
-
- function autoAsignarCategoria() {
-  const descInput = document.getElementById('desc');
-  const catSelect = document.getElementById('cat');
-  if (!descInput || !catSelect) return;
-
-  const texto = descInput.value.toLowerCase().trim();
+  // Dacă câmpul este gol, nu modificăm selecția existentă
   if (!texto) return;
 
   let encontrada = false;
 
+  // 1. Căutăm potrivirea în regulile definite
   for (const regla of reglasCategorias) {
     if (regla.palabras.some(palabra => texto.includes(palabra))) {
       const options = Array.from(catSelect.options);
@@ -299,18 +266,33 @@ if (inputDescDirect) {
     }
   }
 
-  // Si ninguna regla coincide, se asigna automáticamente a "Gastos varios"
+  // 2. Dacă nu s-a găsit nicio potrivire, selectăm "Gastos varios"
   if (!encontrada) {
     const options = Array.from(catSelect.options);
-    const fallbackOption = options.find(opt => opt.value === 'Gastos varios');
+    const fallbackOption = options.find(opt => opt.value.toLowerCase() === 'gastos varios');
     if (fallbackOption) {
-      catSelect.value = 'Gastos varios';
+      catSelect.value = fallbackOption.value;
     }
   }
 }
 
+// Atașarea corectă a evenimentului
+function inicializarAutoCategorizacion() {
+  const inputDesc = document.getElementById('desc');
+  if (inputDesc) {
+    inputDesc.removeEventListener('input', autoAsignarCategoria);
+    inputDesc.addEventListener('input', autoAsignarCategoria);
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', inicializarAutoCategorizacion);
+} else {
+  inicializarAutoCategorizacion();
+}
 
 
+// FIN CATEGORIZACION
 
 // Coloca esto en tu código JavaScript para detectar cuando Supabase redirige tras confirmar
 window.addEventListener('DOMContentLoaded', () => {
