@@ -255,7 +255,7 @@ const reglasCategorias = [
   },
   {
     categoria: 'Salidas con amigos',
-    palabras: ['amigos', 'reunion', 'parrillada', 'pola', 'cerveza']
+    palabras: ['amigos', 'reunion', 'parrillada', 'cerveza']
   },
   {
     categoria: 'Zapatos',
@@ -267,9 +267,23 @@ const reglasCategorias = [
   },
   {
     categoria: 'Golosinas/antojos',
-    palabras: ['almuerzo', 'desayuno', 'cena', 'comida', 'snack', 'antojo', 'dulce', 'café', 'cafe']
+    palabras: ['snack', 'antojo', 'dulce', 'café', 'café','chocolate','Salchipapa']
+  },
+  {
+    categoria: 'Alimentacion',
+    palabras: ['almuerzo', 'desayuno', 'cena', 'merienda','comida']
   }
 ];
+
+//Esto convierte el texto a minúsculas y elimina las tildes para facilitar las comparaciones.
+ 
+ function normalizarTexto(texto) {
+  return texto
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
 
 function autoAsignarCategoria() {
   const descInput = document.getElementById('desc');
@@ -277,7 +291,7 @@ function autoAsignarCategoria() {
   const kindSelect = document.getElementById('kind');
   if (!descInput || !catSelect) return;
 
-  const texto = descInput.value.toLowerCase().trim();
+  const texto = normalizarTexto(descInput.value);
   if (!texto) return;
 
   // 1. Detección exclusiva para Ahorro Personal (evitando que afecte a "ahorro melany")
@@ -308,7 +322,9 @@ function autoAsignarCategoria() {
 
   // 2. Buscar coincidencias en las reglas normales (aquí evaluará "ahorro melany" correctamente)
   for (const regla of reglasCategorias) {
-    if (regla.palabras.some(palabra => texto.includes(palabra))) {
+    if (regla.palabras.some(palabra =>
+  texto.includes(normalizarTexto(palabra))
+)) {
       const options = Array.from(catSelect.options);
       const targetOption = options.find(opt => opt.value === regla.categoria);
       if (targetOption) {
@@ -343,11 +359,13 @@ function autoAsignarCategoriaTarjeta() {
   const descInput = document.getElementById('ccPurchaseDesc');
   const catSelect = document.getElementById('ccPurchaseCat');
   if (!descInput || !catSelect) return;
-  const texto = descInput.value.toLowerCase().trim();
+  const texto = normalizarTexto(descInput.value);
   if (!texto) return;
   let encontrada = false;
   for (const regla of reglasCategorias) {
-    if (regla.palabras.some(palabra => texto.includes(palabra))) {
+    if (regla.palabras.some(palabra =>
+  texto.includes(normalizarTexto(palabra))
+)) {
       const opcion = Array.from(catSelect.options).find(opt => opt.value === regla.categoria);
       if (opcion) { catSelect.value = opcion.value; encontrada = true; }
       break;
