@@ -245,16 +245,33 @@ const reglasCategorias = [
 function autoAsignarCategoria() {
   const descInput = document.getElementById('desc');
   const catSelect = document.getElementById('cat');
+  const kindSelect = document.getElementById('kind'); // Selector de tipo (Gasto / Ahorro personal)
   if (!descInput || !catSelect) return;
 
   const texto = descInput.value.toLowerCase().trim();
-
-  // Dacă câmpul este gol, nu modificăm selecția existentă
   if (!texto) return;
+
+  // 1. Detección especial para Ahorro
+  if (texto === 'ahorro' || texto === 'ahorro personal' || texto.includes('guardar ahorro')) {
+    if (kindSelect) {
+      kindSelect.value = 'ahorro'; // Cambia automáticamente a Ahorro personal
+    }
+    // Si tienes una categoría específica para ahorro, puedes seleccionarla aquí:
+    const targetOpt = Array.from(catSelect.options).find(opt => opt.value.toLowerCase().includes('ahorro'));
+    if (targetOpt) {
+      catSelect.value = targetOpt.value;
+    }
+    return; // Salimos para que no busque en las demás reglas de gastos
+  } else {
+    // Si es cualquier otro gasto, nos aseguramos de que el tipo vuelva a ser "gasto" por defecto
+    if (kindSelect) {
+      kindSelect.value = 'gasto';
+    }
+  }
 
   let encontrada = false;
 
-  // 1. Căutăm potrivirea în regulile definite
+  // 2. Buscar coincidencias en las reglas normales de gastos
   for (const regla of reglasCategorias) {
     if (regla.palabras.some(palabra => texto.includes(palabra))) {
       const options = Array.from(catSelect.options);
@@ -267,7 +284,7 @@ function autoAsignarCategoria() {
     }
   }
 
-  // 2. Dacă nu s-a găsit nicio potrivire, selectăm "Gastos varios"
+  // 3. Si no coincide con nada, asignar "Gastos varios"
   if (!encontrada) {
     const options = Array.from(catSelect.options);
     const fallbackOption = options.find(opt => opt.value.toLowerCase() === 'gastos varios');
