@@ -251,18 +251,18 @@ function autoAsignarCategoria() {
   const texto = descInput.value.toLowerCase().trim();
   if (!texto) return;
 
-  // 1. Detección flexible: si empieza con "ahorro" (ej. "ahorro", "ahorro personal", "ahorro viaje")
-  if (texto.startsWith('ahorro') || texto.includes('guardar ahorro')) {
+  // 1. Detección especial para Ahorro
+  if (texto === 'ahorro' || texto === 'ahorro personal' || texto.includes('guardar ahorro') || texto.includes('ahorro')) {
     if (kindSelect) {
-      kindSelect.value = 'ahorro'; // Cambia el tipo a Ahorro personal
-      kindSelect.dispatchEvent(new Event('change'));
+      kindSelect.value = 'ahorro'; // Cambia a Ahorro personal
+      kindSelect.dispatchEvent(new Event('change')); // Fuerza al navegador a actualizar la vista
     }
     
-    // Buscar específicamente la categoría "Ahorro personal"
-    const targetOpt = Array.from(catSelect.options).find(opt => opt.value.toLowerCase() === 'ahorro personal');
+    // Buscar la categoría que contenga la palabra "ahorro" (ej. "Ahorro personal")
+    const targetOpt = Array.from(catSelect.options).find(opt => opt.value.toLowerCase().includes('ahorro'));
     if (targetOpt) {
       catSelect.value = targetOpt.value;
-      catSelect.dispatchEvent(new Event('change'));
+      catSelect.dispatchEvent(new Event('change')); // Fuerza actualización visual
     }
     return; // Sale para no aplicar reglas de gasto
   } else {
