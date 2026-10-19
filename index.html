@@ -272,7 +272,45 @@ if (inputDescDirect) {
   inputDescDirect.addEventListener('input', autoAsignarCategoria);
 }
 
- 
+
+
+
+
+
+ function autoAsignarCategoria() {
+  const descInput = document.getElementById('desc');
+  const catSelect = document.getElementById('cat');
+  if (!descInput || !catSelect) return;
+
+  const texto = descInput.value.toLowerCase().trim();
+  if (!texto) return;
+
+  let encontrada = false;
+
+  for (const regla of reglasCategorias) {
+    if (regla.palabras.some(palabra => texto.includes(palabra))) {
+      const options = Array.from(catSelect.options);
+      const targetOption = options.find(opt => opt.value === regla.categoria);
+      if (targetOption) {
+        catSelect.value = regla.categoria;
+        encontrada = true;
+      }
+      break;
+    }
+  }
+
+  // Si ninguna regla coincide, se asigna automáticamente a "Gastos varios"
+  if (!encontrada) {
+    const options = Array.from(catSelect.options);
+    const fallbackOption = options.find(opt => opt.value === 'Gastos varios');
+    if (fallbackOption) {
+      catSelect.value = 'Gastos varios';
+    }
+  }
+}
+
+
+
 
 // Coloca esto en tu código JavaScript para detectar cuando Supabase redirige tras confirmar
 window.addEventListener('DOMContentLoaded', () => {
