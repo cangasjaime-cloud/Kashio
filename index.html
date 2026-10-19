@@ -194,7 +194,7 @@ document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=
 render();
 initCloud();
 if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
-</script></body></html>
+
 
 
 // Coloca esto en tu código JavaScript para detectar cuando Supabase redirige tras confirmar
@@ -210,3 +210,8 @@ window.addEventListener('DOMContentLoaded', () => {
     // document.getElementById('mensaje-exito').innerText = "¡Cuenta confirmada con éxito!";
   }
 });
+ 
+</script></body></html>
+
+
+
