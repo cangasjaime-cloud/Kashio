@@ -1,399 +1,772 @@
-<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mi Presupuesto</title><meta name="theme-color" content="#17365d"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg" type="image/svg+xml">
-<style>
-:root{--navy:#142d4e;--navy2:#234b76;--blue:#3978d4;--ink:#182638;--muted:#748196;--line:#e6ebf2;--surface:#fff;--bg:#f5f7fb;--green:#13845d;--red:#c2414b;--radius:17px;--shadow:0 5px 22px rgba(23,45,76,.045)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:88px}
-header{background:var(--surface);color:var(--ink);padding:17px max(16px,calc((100vw - 980px)/2));border-bottom:1px solid var(--line)}header h1{font-size:1.12rem;letter-spacing:-.035em;margin:0;font-weight:800}header div{font-size:.78rem;color:var(--muted);margin-top:3px}
-main{max-width:980px;margin:0 auto;padding:16px 12px 28px}.page{display:none;animation:fadeIn .16s ease-out}.page.active{display:block}@keyframes fadeIn{from{opacity:.6;transform:translateY(2px)}to{opacity:1;transform:translateY(0)}}
-.page-heading{display:flex;justify-content:space-between;align-items:end;margin:3px 3px 13px}.page-heading h2{font-size:1.45rem;letter-spacing:-.045em;margin:0;font-weight:800}.eyebrow{font-size:.64rem;letter-spacing:.12em;font-weight:800;color:var(--blue);margin:0 0 4px}.subheading{color:var(--muted);font-size:.82rem;margin:4px 0 0}
-.card{background:var(--surface);padding:15px;border-radius:var(--radius);border:1px solid var(--line);box-shadow:var(--shadow);margin:0 0 11px;min-width:0}.card h2{font-size:.94rem;letter-spacing:-.02em;margin:0 0 10px;font-weight:780}
-.home-grid{display:grid;gap:11px}.home-grid>.card:nth-child(1){background:linear-gradient(135deg,#142d4e,#24517e);color:#fff;border:0}.home-grid>.card:nth-child(1) .stat{background:#ffffff12;border:1px solid #ffffff1a}.home-grid>.card:nth-child(1) .stat small,.home-grid>.card:nth-child(1) .note{color:#d5e4f5}.home-grid>.card:nth-child(1) .stat strong{font-size:1.25rem}
-label{display:block;margin:9px 0 4px;color:#536579;font-size:.76rem;font-weight:700}input,select,button{font:inherit;border-radius:10px;box-sizing:border-box}input,select{display:block;width:100%;padding:9px 10px;border:1px solid #dce3ed;background:#fff;color:var(--ink);outline:none;min-width:0;font-size:.86rem}input:focus,select:focus{border-color:#78a4e4;box-shadow:0 0 0 3px #3978d41a}button{border:0;cursor:pointer;transition:transform .12s,background .12s;font-size:.83rem;font-weight:750;padding:10px 12px}button:active{transform:scale(.985)}.card>button:not(.alt){width:100%;background:var(--navy);color:#fff;margin-top:11px}.card>button:not(.alt):hover{background:var(--navy2)}button.alt{background:#eef3fa;color:var(--navy)}button:disabled{opacity:.45;cursor:not-allowed}
-.row,.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.row.three{grid-template-columns:1.2fr .8fr 1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stat{background:#f3f6fa;border-radius:12px;padding:11px;min-width:0}.stat small{display:block;color:#718096;font-size:.69rem;margin-bottom:4px}.stat strong{font-size:1.06rem;letter-spacing:-.03em;overflow-wrap:anywhere}.note{font-size:.75rem;color:var(--muted);line-height:1.45;margin:9px 0 0}.line{display:flex;justify-content:space-between;gap:8px;margin:11px 0 5px;font-size:.8rem}.line b{font-variant-numeric:tabular-nums}.bar{height:6px;background:#e8edf3;border-radius:99px;overflow:hidden}.bar span{display:block;height:100%;background:var(--blue);border-radius:99px;transition:width .2s}
-.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:11px}table{border-collapse:collapse;width:100%;font-size:.77rem;min-width:570px;background:#fff}td,th{text-align:left;padding:9px 8px;border-bottom:1px solid #edf0f5;white-space:nowrap}th{font-size:.67rem;text-transform:uppercase;letter-spacing:.04em;color:#718096;background:#f8fafc}tr:last-child td{border-bottom:0}td button{padding:6px 8px;font-size:.72rem}.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:12px}.actions button{width:100%;margin:0}.actions input{width:100%}.income-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;align-items:center;padding:9px 0;border-bottom:1px solid #e9eef4}.income-item:last-child{border-bottom:0}.income-item small{display:block;color:var(--muted);font-size:.72rem;margin-top:2px}.income-item button{width:auto;margin:0;padding:7px 8px}.settings-card .actions{margin-top:13px}
-.compact-tabs{display:flex;gap:5px;padding:4px;margin:0 0 11px;background:#eaf0f7;border-radius:13px;overflow-x:auto;scrollbar-width:none}.compact-tabs::-webkit-scrollbar{display:none}.compact-tabs button{flex:1;white-space:nowrap;background:transparent;color:#69788c;padding:9px 10px;border-radius:10px;font-size:.77rem}.compact-tabs button.active{background:#fff;color:var(--navy);box-shadow:0 2px 8px #17365d12}.tab-panel-hidden{display:none!important}
-.bottom-nav{position:fixed;z-index:10;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:7px max(8px,env(safe-area-inset-left)) calc(7px + env(safe-area-inset-bottom));background:#ffffffed;backdrop-filter:blur(16px);border-top:1px solid var(--line);box-shadow:0 -5px 18px #1c355008}.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:transparent;color:#8490a2;padding:5px 2px;font-size:.67rem;font-weight:700;border-radius:11px}.nav-item .nav-icon{font-size:1.15rem;line-height:1.2;font-weight:500}.nav-item.active{background:#eaf1fb;color:var(--blue)}
-@media(min-width:700px){body{padding-bottom:25px}header{padding-top:20px;padding-bottom:20px}main{padding:22px 20px 32px}.home-grid{grid-template-columns:1fr 1fr}.home-grid>.card:nth-child(1){grid-column:1/-1}.home-grid>.card:nth-child(2),.home-grid>.card:nth-child(3){align-self:start}.bottom-nav{position:sticky;top:0;bottom:auto;max-width:680px;margin:0 auto 4px;border:1px solid var(--line);border-radius:0 0 15px 15px;padding:6px;box-shadow:0 4px 15px #1c35500a}.nav-item{flex-direction:row;gap:7px;font-size:.79rem;padding:10px}.nav-item .nav-icon{font-size:1rem}.actions{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@media(max-width:420px){main{padding:12px 9px 22px}.card{padding:13px;border-radius:14px}.page-heading h2{font-size:1.32rem}.row.three{grid-template-columns:1fr}.row.three button{margin-top:0!important}.stat{padding:9px}.stat strong{font-size:.98rem}.compact-tabs button{padding:9px 8px}}
-</style></head><body>
-<header><h1>Mi Presupuesto</h1><div>Ingresos, gastos y ahorro en un solo lugar</div></header>
-<main>
-  <section class="page active" id="page-home" aria-labelledby="homeTitle">
-    <div class="page-heading"><div><p class="eyebrow">TU DINERO, MÁS CLARO</p><h2 id="homeTitle">Resumen del mes</h2><p class="subheading">Revisa cómo vas y registra tus ingresos.</p></div></div>
-    <div class="home-grid"><section class="card"><h2>Resumen del mes</h2><div class="stats"><div class="stat"><small>Ingreso</small><strong id="mIncome">$0,00</strong></div><div class="stat"><small>Gastos</small><strong id="mSpent">$0,00</strong></div><div class="stat"><small>Ahorro personal</small><strong id="mSave">$0,00</strong></div><div class="stat"><small>Disponible</small><strong id="mLeft">$0,00</strong></div></div><p id="summary" class="note"></p></section><section class="card"><h2>Ingreso de ASSA</h2><div class="row"><div><label>Mes</label><input id="month" type="month"></div><div><label>Depósito recibido ($)</label><input id="income" type="number" min="0" step=".01" placeholder="Ej. 487.30"></div></div><p class="note">Ingresa lo que llegó a tu cuenta después del IESS y demás descuentos. Los ingresos adicionales se registran por separado y se suman automáticamente.</p><button id="saveIncome">Guardar ingreso</button></section><section class="card"><h2>Ingresos adicionales</h2><p class="note">Registra ventas de productos u otros ingresos extra. Puedes añadir varios durante el mes.</p><div class="row"><div><label>Fecha</label><input id="extraDate" type="date"></div><div><label>Valor ($)</label><input id="extraAmount" type="number" min=".01" step=".01" placeholder="Ej. 20.00"></div></div><label>Descripción</label><input id="extraDesc" placeholder="Ej. venta adicional de un repuesto"><button id="addExtraIncome">Registrar ingreso adicional</button><div class="line"><span>Total de ingresos adicionales del mes</span><b id="extraTotal">$0,00</b></div><div id="extraIncomeList"></div><p id="extraEmpty" class="note">Todavía no hay ingresos adicionales registrados este mes.</p></section></div>
-  </section>
-  <section class="page" id="page-movements" aria-labelledby="movementsTitle">
-    <div class="page-heading"><div><p class="eyebrow">REGISTRO DIARIO</p><h2 id="movementsTitle">Movimientos</h2><p class="subheading">Añade gastos y consulta lo que has registrado.</p></div></div>
-    <section class="card"><h2>Registrar movimiento</h2><label>Fecha</label><input id="date" type="date"><label>Descripción</label><input id="desc" placeholder="Ej. almuerzo, gasolina"><div class="row"><div><label>Categoría</label><select id="cat"></select></div><div><label>Valor ($)</label><input id="amount" type="number" min=".01" step=".01"></div></div><label>Tipo</label><select id="kind"><option value="gasto">Gasto</option><option value="ahorro">Ahorro personal</option></select><button id="add">Añadir movimiento</button></section>
-    <section class="card wide"><h2>Movimientos del mes</h2><div class="scroll"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Tipo</th><th>Valor</th><th></th></tr></thead><tbody id="rows"></tbody></table></div><p id="empty" class="note">No hay movimientos este mes.</p><p class="note">Aquí puedes revisar y eliminar los movimientos registrados durante el mes seleccionado.</p></section>
-  </section>
-  <section class="page" id="page-budget" aria-labelledby="budgetTitle">
-    <div class="page-heading"><div><p class="eyebrow">PLANIFICA CON INTENCIÓN</p><h2 id="budgetTitle">Presupuesto</h2><p class="subheading">Controla tus límites y organiza tus categorías.</p></div></div>
-    <section class="card"><h2>Tu presupuesto</h2><p class="note">Límites iniciales editables. Ajusta los gastos variables si recibes menos dinero.</p><div id="budget"></div><div class="card" style="background:#f7f9fb;margin-top:14px;padding:12px"><h2>Modificar límite variable</h2><label>Selecciona la categoría</label><select id="editBudgetCat"></select><label>Nuevo límite mensual ($)</label><input id="editBudgetLimit" type="number" min="0" step=".01" placeholder="Ej. 35.00"><button id="saveBudgetLimit">Guardar límite</button><p class="note">Solo necesitas elegir la categoría que quieres cambiar; no hace falta recorrer las demás.</p></div></section>
-    <section class="card"><h2>Administrar categorías</h2><p class="note">Puedes crear categorías nuevas o eliminar las que ya no necesites. Los movimientos antiguos conservarán el nombre de su categoría.</p><label>Nueva categoría</label><div class="row three"><div><input id="newCat" placeholder="Ej. Salud, transporte"></div><div><input id="newCatLimit" type="number" min="0" step=".01" placeholder="Límite $" aria-label="Límite mensual de la nueva categoría"></div><div><button id="addCat" style="margin-top:0">Agregar categoría</button></div></div><p class="note">Al crear una categoría, define también cuánto quieres gastar como máximo al mes.</p><label>Eliminar categoría</label><div class="row"><div><select id="deleteCatSelect"><option value="">Selecciona una categoría</option></select></div><div><button class="alt" id="deleteCat" style="margin-top:0" disabled>Eliminar seleccionada</button></div></div><p class="note">Selecciona una sola categoría para eliminarla. Los movimientos antiguos conservarán el nombre de su categoría.</p></section>
-  </section>
-  <section class="page" id="page-cards" aria-labelledby="cardsTitle">
-    <div class="page-heading"><div><p class="eyebrow">CRÉDITO BAJO CONTROL</p><h2 id="cardsTitle">Tarjetas de crédito</h2><p class="subheading">Registra compras y pagos sin duplicar tus gastos.</p></div></div>
-    <section class="card"><h2>Resumen de tarjetas</h2><div id="cardSummary" class="stats"></div><p class="note">Ingresa el saldo real que tenga cada tarjeta cuando empieces a usar la aplicación. Puedes dejarlo en $0 y actualizarlo después.</p></section>
-    <section class="card"><h2>Registrar compra con tarjeta</h2><label>Fecha de compra</label><input id="ccPurchaseDate" type="date"><div class="row"><div><label>Tarjeta</label><select id="ccPurchaseCard"><option value="card1">Tarjeta principal</option><option value="card2">Segunda tarjeta</option></select></div><div><label>Valor ($)</label><input id="ccPurchaseAmount" type="number" min=".01" step=".01" placeholder="Ej. 24.50"></div></div><label>Descripción</label><input id="ccPurchaseDesc" placeholder="Ej. compra de supermercado"><div class="row"><div><label>Categoría</label><select id="ccPurchaseCat"></select></div><div><label>Modalidad</label><select id="ccPurchaseMode"><option value="corriente">Corriente</option><option value="diferido">Diferido</option></select></div></div><div id="ccInstallmentFields" class="row" hidden><div><label>Número de cuotas</label><input id="ccInstallments" type="number" min="2" step="1" value="3"></div><div><label>Interés total estimado ($, opcional)</label><input id="ccInterest" type="number" min="0" step=".01" value="0"></div></div><p id="ccCyclePreview" class="note"></p><button id="ccAddPurchase">Registrar compra</button></section>
-    <section class="card"><h2>Registrar pago al banco</h2><label>Fecha del pago</label><input id="ccPaymentDate" type="date"><div class="row"><div><label>Tarjeta</label><select id="ccPaymentCard"><option value="card1">Tarjeta principal</option><option value="card2">Segunda tarjeta</option></select></div><div><label>Valor pagado ($)</label><input id="ccPaymentAmount" type="number" min=".01" step=".01" placeholder="Ej. 86.19"></div></div><label>Nota (opcional)</label><input id="ccPaymentNote" placeholder="Ej. pago del estado de cuenta"><button id="ccAddPayment">Registrar pago</button><p class="note">El pago disminuye la deuda y se descuenta del disponible del mes, pero no vuelve a contarse como gasto.</p></section>
-    <section class="card"><h2>Configurar tarjetas</h2><p class="note">Puedes editar los datos de ambas tarjetas. La fecha de corte asigna automáticamente las compras al período y calcula la fecha de pago configurada.</p><div class="row"><div><label>Nombre de tarjeta principal</label><input id="ccName1" value="Tarjeta principal"></div><div><label>Cupo ($)</label><input id="ccLimit1" type="number" min="0" step=".01" value="800"></div></div><label>Deuda inicial de la tarjeta principal ($)</label><input id="ccOpening1" type="number" min="0" step=".01" value="0" placeholder="Saldo pendiente al empezar"><div class="row"><div><label>Día de corte</label><input id="ccCutoff1" type="number" min="1" max="28" value="13"></div><div><label>Día de pago</label><input id="ccDue1" type="number" min="1" max="28" value="28"></div></div><div class="row"><div><label>Nombre segunda tarjeta</label><input id="ccName2" value="Segunda tarjeta"></div><div><label>Cupo ($)</label><input id="ccLimit2" type="number" min="0" step=".01" value="0"></div></div><div class="row"><div><label>Día de corte</label><input id="ccCutoff2" type="number" min="1" max="28" value="13"></div><div><label>Día de pago</label><input id="ccDue2" type="number" min="1" max="28" value="28"></div></div><label>Deuda inicial segunda tarjeta ($)</label><input id="ccOpening2" type="number" min="0" step=".01" value="0"><button id="ccSaveSettings">Guardar configuración</button><p class="note">La segunda tarjeta queda con cupo y deuda inicial en cero hasta que ingreses sus datos reales. Sus fechas predeterminadas son provisionales.</p></section>
-    <section class="card"><h2>Compras y pagos registrados</h2><div class="scroll"><table><thead><tr><th>Fecha</th><th>Tarjeta</th><th>Movimiento</th><th>Descripción</th><th>Período / vencimiento</th><th>Valor</th><th></th></tr></thead><tbody id="ccRows"></tbody></table></div><p id="ccEmpty" class="note">Todavía no hay compras o pagos con tarjeta registrados en el sistema.</p></section>
-  </section>
-  <section class="page" id="page-settings" aria-labelledby="settingsTitle">
-    <div class="page-heading"><div><p class="eyebrow">TU APLICACIÓN</p><h2 id="settingsTitle">Ajustes y respaldos</h2><p class="subheading">Protege tus datos y exporta tus movimientos.</p></div></div>
-    <section class="card" id="cloudCard"><h2>Cuenta y sincronización en la nube</h2><p class="note" id="cloudStatus">Comprueba la configuración para activar la sincronización segura.</p><label for="cloudEmail">Correo electrónico</label><input id="cloudEmail" type="email" autocomplete="username" placeholder="tu correo"><label for="cloudPassword">Contraseña</label><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Usa una contraseña segura"><div class="actions"><button class="alt" id="cloudLogin">Iniciar sesión</button><button class="alt" id="cloudSignup">Crear cuenta</button><button class="alt" id="cloudLogout" disabled>Cerrar sesión</button><button class="alt" id="cloudForgot">Recuperar contraseña</button></div><div id="resetRequestBox" hidden><label for="resetEmail">Correo para recuperar la contraseña</label><input id="resetEmail" type="email" autocomplete="email" placeholder="tu correo"><button id="sendResetEmail">Enviar enlace de recuperación</button></div><div id="resetPasswordBox" hidden><h2>Establecer nueva contraseña</h2><p class="note">Escribe una contraseña nueva de al menos 8 caracteres.</p><label for="newCloudPassword">Nueva contraseña</label><input id="newCloudPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Nueva contraseña"><label for="confirmCloudPassword">Confirmar nueva contraseña</label><input id="confirmCloudPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Repite la contraseña"><button id="saveNewPassword">Guardar nueva contraseña</button></div><p class="note">La cuenta protege tus datos. Al iniciar sesión por primera vez en un dispositivo sin datos en la nube, la app subirá los datos locales. Si ya hay datos en la nube, esos datos se cargarán en este dispositivo.</p></section>
-    <section class="card settings-card"><h2>Datos y copias de seguridad</h2><p class="note">Además de la sincronización en la nube, conserva una copia de seguridad periódica como respaldo adicional.</p><div class="actions"><button class="alt" id="csv">Exportar CSV</button><button class="alt" id="backup">Copia de seguridad</button><button class="alt" id="restoreBtn">Restaurar copia</button><input id="restore" type="file" accept=".json" hidden><button class="alt" id="clear">Borrar movimientos del mes</button></div><p class="note">Al restaurar una copia con sesión iniciada, los datos restaurados también se guardarán en la nube.</p></section>
-  </section>
-</main>
-<nav class="bottom-nav" aria-label="Navegación principal">
-  <button class="nav-item active" type="button" data-page="home"><span class="nav-icon">⌂</span><span>Inicio</span></button>
-  <button class="nav-item" type="button" data-page="movements"><span class="nav-icon">↔</span><span>Movimientos</span></button>
-  <button class="nav-item" type="button" data-page="budget"><span class="nav-icon">▤</span><span>Presupuesto</span></button>
-  <button class="nav-item" type="button" data-page="cards"><span class="nav-icon">▣</span><span>Tarjetas</span></button>
-  <button class="nav-item" type="button" data-page="settings"><span class="nav-icon">⚙</span><span>Ajustes</span></button>
-</nav>
-<script>
-(function(){
- const definitions={
-  home:{labels:['Resumen','Ingresos'],groups:[[0],[1,2]],active:0},
-  movements:{labels:['Historial','Registrar'],groups:[[1],[0]],active:0},
-  budget:{labels:['Límites','Categorías'],groups:[[0],[1]],active:0},
-  cards:{labels:['Resumen','Compras','Pagos','Configurar','Historial'],groups:[[0],[1],[2],[3],[4]],active:0},
-  settings:{labels:['Nube y cuenta','Respaldos'],groups:[[0],[1]],active:0}
- };
- function setup(){Object.entries(definitions).forEach(([pageName,def])=>{
-  const page=document.getElementById('page-'+pageName);if(!page)return;
-  const heading=page.querySelector('.page-heading');const homeGrid=pageName==='home'?page.querySelector('.home-grid'):null;const cards=homeGrid?Array.from(homeGrid.children):Array.from(page.children).filter(el=>el.classList&&el.classList.contains('card'));
-  if(!heading||!cards.length)return;
-  const tabs=document.createElement('div');tabs.className='compact-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Secciones de '+pageName);
-  def.labels.forEach((label,i)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.setAttribute('role','tab');b.setAttribute('aria-selected',i===def.active?'true':'false');b.classList.toggle('active',i===def.active);b.addEventListener('click',()=>activate(i));tabs.appendChild(b)});
-  heading.insertAdjacentElement('afterend',tabs);
-  function activate(index){const allowed=new Set(def.groups[index]);cards.forEach((card,i)=>card.classList.toggle('tab-panel-hidden',!allowed.has(i)));Array.from(tabs.children).forEach((b,i)=>{b.classList.toggle('active',i===index);b.setAttribute('aria-selected',i===index?'true':'false')})}
-  activate(def.active);
- });}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
-})();
-</script>
-<script src="config.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-let cloudClient=null, cloudUser=null, cloudTimer=null, cloudLoading=false;
-const cloudConfigured=()=>Boolean(window.MI_SUPABASE_URL && window.MI_SUPABASE_ANON_KEY && !window.MI_SUPABASE_URL.includes("TU_PROYECTO") && !window.MI_SUPABASE_ANON_KEY.includes("TU_CLAVE"));
-function cloudMessage(msg){const el=document.getElementById("cloudStatus");if(el)el.textContent=msg}
-function scheduleCloudSave(){if(!cloudClient||!cloudUser||cloudLoading)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(async()=>{try{const {error}=await cloudClient.from("budget_data").upsert({user_id:cloudUser.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(error)throw error;cloudMessage("Sesión activa: cambios guardados en la nube.")}catch(e){cloudMessage("No se pudo sincronizar. Revisa la conexión y la configuración; tus cambios siguen guardados en este dispositivo.")}},700)}
-async function loadCloudData(user){cloudUser=user;cloudLoading=true;try{const {data:row,error}=await cloudClient.from("budget_data").select("data").eq("user_id",user.id).maybeSingle();if(error)throw error;if(row&&row.data){data={...data,...row.data,additionalIncomes:Array.isArray(row.data.additionalIncomes)?row.data.additionalIncomes:[],budgets:{...defaults,...row.data.budgets},categories:Array.isArray(row.data.categories)?row.data.categories:[...initialCats]};localStorage.setItem("miPresupuesto",JSON.stringify(data));render();cloudMessage("Sesión activa: tus datos se cargaron desde la nube.")}else{const {error:upErr}=await cloudClient.from("budget_data").upsert({user_id:user.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(upErr)throw upErr;cloudMessage("Cuenta conectada. Los datos de este dispositivo se guardaron en la nube.")}document.getElementById("cloudEmail").value=user.email||"";document.getElementById("cloudPassword").value="";document.getElementById("cloudLogin").disabled=true;document.getElementById("cloudSignup").disabled=true;document.getElementById("cloudLogout").disabled=false;}catch(e){cloudMessage("Error al cargar o guardar en la nube: "+(e.message||"verifica la tabla y las políticas RLS"));cloudUser=null;}finally{cloudLoading=false}}
-async function initCloud(){if(!cloudConfigured()||!window.supabase){cloudMessage("Falta configurar Supabase. Sigue el archivo LEEME para activar la nube; mientras tanto, los datos siguen guardándose localmente.");return}cloudClient=window.supabase.createClient(window.MI_SUPABASE_URL,window.MI_SUPABASE_ANON_KEY);const showRecoveryForm=()=>{resetRequestBox.hidden=true;resetPasswordBox.hidden=false;cloudMessage("Enlace de recuperación detectado. Escribe y guarda tu nueva contraseña.")};const recoveryRequestedAt=Number(localStorage.getItem("miPresupuestoRecoveryRequestedAt")||0);const recoveryWasRequested=Date.now()-recoveryRequestedAt<30*60*1000;const hashParams=new URLSearchParams(window.location.hash.slice(1));const queryParams=new URLSearchParams(window.location.search);const recoveryInUrl=hashParams.get("type")==="recovery"||queryParams.get("type")==="recovery";if(recoveryInUrl)showRecoveryForm();cloudClient.auth.onAuthStateChange((event,session)=>{if(event==="PASSWORD_RECOVERY"){showRecoveryForm()}else if(event==="SIGNED_OUT"){cloudUser=null;document.getElementById("cloudLogin").disabled=false;document.getElementById("cloudSignup").disabled=false;document.getElementById("cloudLogout").disabled=true;cloudMessage("Sesión cerrada. Los datos locales de este dispositivo se conservan.")}else if(event==="SIGNED_IN"&&session&&(!cloudUser||cloudUser.id!==session.user.id)){if(recoveryWasRequested||recoveryInUrl)showRecoveryForm();else setTimeout(()=>loadCloudData(session.user),0)}});const {data:sessionData,error}=await cloudClient.auth.getSession();if(error){cloudMessage("No se pudo comprobar la sesión: "+error.message);return}if(recoveryWasRequested&&sessionData.session){showRecoveryForm()}else if(sessionData.session)await loadCloudData(sessionData.session.user);else if(!recoveryInUrl)cloudMessage("Configuración lista. Inicia sesión para sincronizar tus datos en todos tus dispositivos.") }
-document.getElementById("cloudLogin").onclick=async()=>{if(!cloudClient){alert("Primero configura Supabase siguiendo LEEME.");return}const email=document.getElementById("cloudEmail").value.trim(),password=document.getElementById("cloudPassword").value;if(!email||!password){alert("Escribe tu correo y contraseña.");return}const {data:res,error}=await cloudClient.auth.signInWithPassword({email,password});if(error){cloudMessage("No se pudo iniciar sesión: "+error.message);return}await loadCloudData(res.user)};
-document.getElementById("cloudSignup").onclick=async()=>{if(!cloudClient){alert("Primero configura Supabase siguiendo LEEME.");return}const email=document.getElementById("cloudEmail").value.trim(),password=document.getElementById("cloudPassword").value;if(!email||password.length<8){alert("Escribe tu correo y una contraseña de al menos 8 caracteres.");return}const {data:res,error}=await cloudClient.auth.signUp({email,password});if(error){cloudMessage("No se pudo crear la cuenta: "+error.message);return}if(res.session&&res.user)await loadCloudData(res.user);else cloudMessage("Cuenta creada. Revisa tu correo para confirmar la cuenta y luego inicia sesión.")};
-document.getElementById("cloudLogout").onclick=async()=>{if(cloudClient){const {error}=await cloudClient.auth.signOut();if(error)cloudMessage("No se pudo cerrar sesión: "+error.message)}};
-const resetRequestBox=document.getElementById("resetRequestBox"),resetPasswordBox=document.getElementById("resetPasswordBox");
-document.getElementById("cloudForgot").onclick=()=>{if(!cloudClient){cloudMessage("No se pudo conectar con Supabase. Comprueba config.js y recarga la página.");return}document.getElementById("resetEmail").value=document.getElementById("cloudEmail").value.trim();resetRequestBox.hidden=!resetRequestBox.hidden;resetPasswordBox.hidden=true;if(!resetRequestBox.hidden)cloudMessage("Escribe el correo de tu cuenta y te enviaremos un enlace para restablecer la contraseña.")};
-document.getElementById("sendResetEmail").onclick=async()=>{if(!cloudClient){cloudMessage("No se pudo conectar con Supabase. Comprueba config.js y recarga la página.");return}const email=document.getElementById("resetEmail").value.trim();if(!email){cloudMessage("Escribe el correo de tu cuenta.");return}const redirectTo=window.location.origin+window.location.pathname;const {error}=await cloudClient.auth.resetPasswordForEmail(email,{redirectTo});if(error){cloudMessage("No se pudo enviar el enlace: "+error.message);return}localStorage.setItem("miPresupuestoRecoveryRequestedAt",String(Date.now()));resetRequestBox.hidden=true;cloudMessage("Si el correo corresponde a una cuenta, recibirás un enlace de recuperación. Ábrelo para establecer la contraseña nueva.")};
-document.getElementById("saveNewPassword").onclick=async()=>{if(!cloudClient){cloudMessage("No se pudo conectar con Supabase.");return}const password=document.getElementById("newCloudPassword").value,confirmPassword=document.getElementById("confirmCloudPassword").value;if(password.length<8){cloudMessage("La contraseña debe tener al menos 8 caracteres.");return}if(password!==confirmPassword){cloudMessage("Las contraseñas no coinciden.");return}const {error}=await cloudClient.auth.updateUser({password});if(error){cloudMessage("No se pudo cambiar la contraseña: "+error.message);return}document.getElementById("newCloudPassword").value="";document.getElementById("confirmCloudPassword").value="";resetPasswordBox.hidden=true;localStorage.removeItem("miPresupuestoRecoveryRequestedAt");cloudMessage("Contraseña actualizada correctamente. Ya puedes iniciar sesión con tu nueva contraseña.");await cloudClient.auth.signOut()};
-const fixed=[['Gastos de la casa',65],['Ahorro conjunto con novia',40],['Plan celular',6],['Comida del gato',10],['Gasolina',20]];
-const defaults={'Salidas con mi novia':70,'Salidas con amigos':30,'Ropa':20,'Zapatos':15,'Golosinas/antojos':20,'Gastos varios':20};
-const initialCats=[...fixed.map(x=>x[0]),...Object.keys(defaults),'Ahorro personal','Imprevistos'];
-const $=x=>document.getElementById(x), money=n=>new Intl.NumberFormat('es-EC',{style:'currency',currency:'USD'}).format(Number(n)||0);
-const now=new Date(), monthNow=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'), dateNow=monthNow+'-'+String(now.getDate()).padStart(2,'0');
-$('month').value=monthNow;$('date').value=dateNow;$('extraDate').value=dateNow;
-let data={incomes:{},additionalIncomes:[],transactions:[],budgets:{...defaults},categories:[...initialCats],cardPurchases:[],cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0}}};
-try{let s=localStorage.getItem('miPresupuesto');if(s){let d=JSON.parse(s);data={...data,...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],budgets:{...defaults,...d.budgets},categories:Array.isArray(d.categories)?d.categories:[...initialCats],cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}}}}catch(e){}
-function save(){localStorage.setItem('miPresupuesto',JSON.stringify(data));scheduleCloudSave()}
-function renderCategories(){
- const select=$('cat'),current=select.value;select.innerHTML='';
- data.categories.forEach(c=>{let o=document.createElement('option');o.value=c;o.textContent=c;select.appendChild(o)});
- if(data.categories.includes(current))select.value=current;
- const deleteSelect=$('deleteCatSelect'),deleteCurrent=deleteSelect.value;
- deleteSelect.innerHTML='';
- const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Selecciona una categoría';deleteSelect.appendChild(placeholder);
- data.categories.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;deleteSelect.appendChild(o)});
- if(data.categories.includes(deleteCurrent))deleteSelect.value=deleteCurrent;
- $('deleteCat').disabled=!deleteSelect.value;
- const editSelect=$('editBudgetCat'),editCurrent=editSelect.value;editSelect.innerHTML='';
- const editable=Object.keys(data.budgets).filter(c=>data.categories.includes(c)&&!fixed.some(x=>x[0]===c));
- if(!editable.length){const o=document.createElement('option');o.value='';o.textContent='No hay categorías variables';editSelect.appendChild(o)}
- editable.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;editSelect.appendChild(o)});
- if(editable.includes(editCurrent))editSelect.value=editCurrent;
- $('editBudgetLimit').value=editSelect.value!==''?(data.budgets[editSelect.value]??0):'';
-} 
-$('deleteCatSelect').onchange=()=>{$('deleteCat').disabled=!$('deleteCatSelect').value};
-$('editBudgetCat').onchange=()=>{$('editBudgetLimit').value=$('editBudgetCat').value!==''?(data.budgets[$('editBudgetCat').value]??0):''};
-$('saveBudgetLimit').onclick=()=>{const c=$('editBudgetCat').value,v=Number($('editBudgetLimit').value);if(!c){alert('Selecciona una categoría variable.');return}if($('editBudgetLimit').value.trim()===''||!Number.isFinite(v)||v<0){alert('Ingresa un límite válido, igual o mayor que cero.');return}data.budgets[c]=v;save();render();$('editBudgetCat').value=c;$('editBudgetLimit').value=v;alert('Límite de “'+c+'” actualizado a '+money(v)+'.')};
-$('deleteCat').onclick=()=>{const c=$('deleteCatSelect').value;if(!c){alert('Selecciona una categoría para eliminar.');return}if(!confirm('¿Eliminar la categoría "'+c+'"? Los movimientos ya registrados no se borrarán.'))return;data.categories=data.categories.filter(x=>x!==c);delete data.budgets[c];save();render()};
-$('addCat').onclick=()=>{const name=$('newCat').value.trim();if(!name){alert('Escribe el nombre de la categoría.');return}if(data.categories.some(c=>c.toLocaleLowerCase()===name.toLocaleLowerCase())){alert('Esa categoría ya existe.');return}const limit=Number($('newCatLimit').value||0);if(!Number.isFinite(limit)||limit<0){alert('Ingresa un límite válido, igual o mayor que cero.');return}data.categories.push(name);data.budgets[name]=limit;$('newCat').value='';$('newCatLimit').value='';save();render()};
-$('newCat').addEventListener('keydown',e=>{if(e.key==='Enter')$('addCat').click()});$('newCatLimit').addEventListener('keydown',e=>{if(e.key==='Enter')$('addCat').click()});
-function m(){return $('month').value||monthNow}function ts(){return data.transactions.filter(t=>t.date.startsWith(m()))}function extraIncomes(){if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];return data.additionalIncomes.filter(x=>x.date&&x.date.startsWith(m()))}function extraIncomeTotal(){return extraIncomes().reduce((s,x)=>s+(Number(x.amount)||0),0)}
-function spent(){return ts().filter(t=>t.kind==='gasto').reduce((s,t)=>s+t.amount,0)}
-function cardPaymentsThisMonth(){return (data.cardPayments||[]).filter(p=>p.date&&p.date.startsWith(m())).reduce((s,p)=>s+(Number(p.amount)||0),0)}
-function sav(){return ts().filter(t=>t.kind==='ahorro').reduce((s,t)=>s+t.amount,0)}
-function render(){
- let baseInc=Number(data.incomes[m()]||0),extraTotal=extraIncomeTotal(),inc=baseInc+extraTotal,sp=spent(),sv=sav(),left=inc-sp-sv-cardPaymentsThisMonth();
- renderCategories();$('income').value=data.incomes[m()]??'';$('mIncome').textContent=money(inc);$('extraTotal').textContent=money(extraTotal);
- const extraList=$('extraIncomeList');extraList.innerHTML='';
- const monthExtras=extraIncomes().sort((a,b)=>b.date.localeCompare(a.date));
- monthExtras.forEach(x=>{const item=document.createElement('div');item.className='income-item';const info=document.createElement('div');const title=document.createElement('strong');title.textContent=x.desc;const date=document.createElement('small');date.textContent=x.date;info.append(title,date);const amount=document.createElement('b');amount.textContent=money(x.amount);const btn=document.createElement('button');btn.className='alt';btn.textContent='Eliminar';btn.setAttribute('aria-label','Eliminar ingreso adicional: '+x.desc);btn.onclick=()=>{if(confirm('¿Eliminar este ingreso adicional?')){data.additionalIncomes=data.additionalIncomes.filter(y=>y.id!==x.id);save();render()}};item.append(info,amount,btn);extraList.appendChild(item)});
- $('extraEmpty').style.display=monthExtras.length?'none':'block';$('mSpent').textContent=money(sp);$('mSave').textContent=money(sv);$('mLeft').textContent=money(left);$('mLeft').style.color=left<0?'#b42318':'#18794e';
- $('summary').textContent=inc?`Después de gastos, ahorro y pagos a tarjetas, te quedan ${money(left)} sin asignar.`:'Ingresa tu depósito líquido para ver cuánto tienes disponible.';
- let budget=$('budget');budget.innerHTML='';
- let t=ts(), rows=[...fixed.filter(([name])=>data.categories.includes(name)).map(([name,limit])=>({name,limit,actual:t.filter(x=>x.kind==='gasto'&&x.cat===name).reduce((s,x)=>s+x.amount,0)})),{name:'Ahorro personal sugerido',limit:Math.min(60,Math.max(0,inc-fixed.filter(([name])=>data.categories.includes(name)).reduce((s,x)=>s+x[1],0))),actual:sv},...Object.entries(data.budgets).filter(([name])=>data.categories.includes(name)&&!fixed.some(x=>x[0]===name)).map(([name,limit])=>({name,limit,actual:t.filter(x=>x.kind==='gasto'&&x.cat===name).reduce((s,x)=>s+x.amount,0)}))];
- rows.forEach(r=>{let line=document.createElement('div');line.className='line';let a=document.createElement('span');a.textContent=r.name;let b=document.createElement('b');b.textContent=money(r.actual)+' / '+money(r.limit);line.append(a,b);budget.appendChild(line);let bar=document.createElement('div');bar.className='bar';let fill=document.createElement('span');fill.style.width=(r.limit?Math.min(100,r.actual/r.limit*100):0)+'%';if(r.actual>r.limit)fill.style.background='#b42318';bar.appendChild(fill);budget.appendChild(bar)});
- let body=$('rows');body.innerHTML='';t.sort((a,b)=>b.date.localeCompare(a.date)).forEach(x=>{let tr=document.createElement('tr');[x.date,x.desc,x.cat,x.kind==='ahorro'?'Ahorro':'Gasto',money(x.amount)].forEach(v=>{let td=document.createElement('td');td.textContent=v;tr.appendChild(td)});let td=document.createElement('td'),btn=document.createElement('button');btn.className='alt';btn.textContent='Eliminar';btn.onclick=()=>{data.transactions=data.transactions.filter(y=>y.id!==x.id);save();render()};td.appendChild(btn);tr.appendChild(td);body.appendChild(tr)});$('empty').style.display=t.length?'none':'block';
-}
-$('month').onchange=render;$('saveIncome').onclick=()=>{let n=Number($('income').value);if($('income').value.trim()===''||!Number.isFinite(n)||n<0){alert('Ingresa un ingreso válido');return}data.incomes[m()]=n;save();render()};
-$('addExtraIncome').onclick=()=>{const date=$('extraDate').value,desc=$('extraDesc').value.trim(),raw=$('extraAmount').value,amount=Number(raw);if(!date||!desc||raw.trim()===''||!Number.isFinite(amount)||amount<=0){alert('Completa fecha, descripción y un valor mayor que cero.');return}if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];data.additionalIncomes.push({id:Date.now()+Math.random(),date,desc,amount});save();$('extraDesc').value='';$('extraAmount').value='';render()};
-$('extraDesc').addEventListener('keydown',e=>{if(e.key==='Enter')$('addExtraIncome').click()});
-$('add').onclick=()=>{let amount=Number($('amount').value),desc=$('desc').value.trim(),date=$('date').value;if(!date||!desc||!Number.isFinite(amount)||amount<=0){alert('Completa fecha, descripción y valor mayor que cero');return}data.transactions.push({id:Date.now()+Math.random(),date,desc,cat:$('cat').value,amount,kind:$('kind').value});save();$('desc').value='';$('amount').value='';render()};
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Mi Presupuesto App</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
- 
-function download(content,name,type){let u=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
-$('csv').onclick=()=>{let lines=[['Fecha','Descripción','Categoría','Tipo','Valor'],...ts().map(t=>[t.date,t.desc,t.cat,t.kind,t.amount]),...extraIncomes().map(x=>[x.date,x.desc,'Ingresos adicionales','ingreso adicional',x.amount]),...(data.cardPurchases||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.desc,'Tarjeta de crédito','compra '+x.mode+' '+x.card,x.amount]),...(data.cardPayments||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.note||'Pago tarjeta','Pago tarjeta',x.card,x.amount])];download('\ufeff'+lines.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n'),'movimientos-'+m()+'.csv','text/csv;charset=utf-8')};
-$('backup').onclick=()=>download(JSON.stringify(data,null,2),'copia-mi-presupuesto.json','application/json');
-$('restoreBtn').onclick=()=>$('restore').click();$('restore').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!d.incomes||!Array.isArray(d.transactions)||!d.budgets)throw 0;data={...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}};save();render();renderCards();alert('Copia restaurada')}catch(err){alert('Archivo de copia no válido')}e.target.value=''};
-$('clear').onclick=()=>{if(confirm('¿Borrar los movimientos y los ingresos adicionales del mes seleccionado?')){data.transactions=data.transactions.filter(t=>!t.date.startsWith(m()));data.additionalIncomes=(data.additionalIncomes||[]).filter(x=>!x.date.startsWith(m()));data.cardPurchases=(data.cardPurchases||[]).filter(t=>!t.date.startsWith(m()));data.cardPayments=(data.cardPayments||[]).filter(t=>!t.date.startsWith(m()));save();render();renderCards()}};
-function showPage(name){
- document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
- document.querySelectorAll('.nav-item').forEach(b=>{const active=b.dataset.page===name;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false')});
- window.scrollTo({top:0,behavior:'smooth'});
-}
-document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
-// --- MÓDULO DE TARJETAS DE CRÉDITO ---
-function cardObj(id){return data.cards[id]||{name:id==='card1'?'Tarjeta principal':'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0}}
-function cardName(id){return cardObj(id).name|| (id==='card1'?'Tarjeta principal':'Segunda tarjeta')}
-function addMonthsISO(date,months){const d=new Date(date+'T12:00:00');d.setMonth(d.getMonth()+months);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function cycleFor(date,id){const c=cardObj(id),day=Number(c.cutoff)||13,parts=date.split('-').map(Number);let y=parts[0],mo=parts[1],dd=parts[2];if(dd>day){mo++;if(mo>12){mo=1;y++}}const cutoffDate=y+'-'+String(mo).padStart(2,'0')+'-'+String(day).padStart(2,'0');let dueY=y,dueM=mo;if(Number(c.due)<=day && dd>day){dueM++;if(dueM>12){dueM=1;dueY++}}const dueDate=dueY+'-'+String(dueM).padStart(2,'0')+'-'+String(Number(c.due)||28).padStart(2,'0');return {cutoff:cutoffDate,due:dueDate}}
-function cardBalance(id){const c=cardObj(id),buys=(data.cardPurchases||[]).filter(x=>x.card===id).reduce((s,x)=>s+(Number(x.amount)||0),0),pays=(data.cardPayments||[]).filter(x=>x.card===id).reduce((s,x)=>s+(Number(x.amount)||0),0);return Math.max(0,(Number(c.openingBalance)||0)+buys-pays)}
-function refreshCardSelects(){[['ccPurchaseCard','card1','card2'],['ccPaymentCard','card1','card2']].forEach(([selectId,...ids])=>{const sel=$(selectId);if(!sel)return;const old=sel.value;sel.innerHTML='';ids.forEach(id=>{const opt=document.createElement('option');opt.value=id;opt.textContent=cardName(id);sel.appendChild(opt)});if(ids.includes(old))sel.value=old;});}
-function renderCards(){if(!document.getElementById('cardSummary'))return;refreshCardSelects();const summary=$('cardSummary');summary.innerHTML='';['card1','card2'].forEach(id=>{const c=cardObj(id),balance=cardBalance(id),available=Math.max(0,(Number(c.limit)||0)-balance);const box=document.createElement('div');box.className='stat';box.innerHTML='<small></small><strong></strong><small></small><small></small>';box.children[0].textContent=cardName(id);box.children[1].textContent=money(balance)+' pendiente';box.children[2].textContent='Cupo disponible: '+money(available);box.children[3].textContent='Corte día '+c.cutoff+' · pago día '+c.due;summary.appendChild(box)});
- const cat=$('ccPurchaseCat'),old=cat.value;cat.innerHTML='';data.categories.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;cat.appendChild(o)});if(data.categories.includes(old))cat.value=old;
- const body=$('ccRows');body.innerHTML='';const events=[...(data.cardPurchases||[]).map(x=>({...x,eventType:'Compra'})),...(data.cardPayments||[]).map(x=>({...x,eventType:'Pago',amount:-Number(x.amount||0),mode:'pago',desc:x.note||'Pago a tarjeta'}))].sort((a,b)=>b.date.localeCompare(a.date));events.forEach(x=>{const tr=document.createElement('tr'),period=x.eventType==='Compra'?(x.cutoff+' / '+x.due):'—';[x.date,cardName(x.card),x.eventType+(x.mode==='diferido'?' diferido':x.mode==='corriente'?' corriente':''),x.desc||x.note||'',period,money(x.amount)].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td)});const td=document.createElement('td'),btn=document.createElement('button');btn.className='alt';btn.textContent='Eliminar';btn.onclick=()=>{if(!confirm('¿Eliminar este registro?'))return;if(x.eventType==='Compra'){data.cardPurchases=data.cardPurchases.filter(y=>y.id!==x.id);data.transactions=data.transactions.filter(y=>y.cardPurchaseId!==x.id)}else data.cardPayments=data.cardPayments.filter(y=>y.id!==x.id);save();render();renderCards()};td.appendChild(btn);tr.appendChild(td);body.appendChild(tr)});$('ccEmpty').style.display=events.length?'none':'block';
- const date=$('ccPurchaseDate').value||dateNow;if(!$('ccPurchaseDate').value)$('ccPurchaseDate').value=dateNow;if(!$('ccPaymentDate').value)$('ccPaymentDate').value=dateNow;const cyc=cycleFor(date,$('ccPurchaseCard').value);$('ccCyclePreview').textContent='Esta compra entraría al corte del '+cyc.cutoff+' y tendría fecha de pago '+cyc.due+'.';$('ccInstallmentFields').hidden=$('ccPurchaseMode').value!=='diferido';
-}
-$('ccPurchaseDate').onchange=renderCards;$('ccPurchaseCard').onchange=renderCards;$('ccPurchaseMode').onchange=renderCards;
-$('ccAddPurchase').onclick=()=>{const date=$('ccPurchaseDate').value,desc=$('ccPurchaseDesc').value.trim(),amount=Number($('ccPurchaseAmount').value),card=$('ccPurchaseCard').value,mode=$('ccPurchaseMode').value,cat=$('ccPurchaseCat').value;if(!date||!desc||!Number.isFinite(amount)||amount<=0){alert('Completa fecha, descripción y un valor mayor que cero.');return}let installments=1,interest=0;if(mode==='diferido'){installments=Number($('ccInstallments').value);interest=Number($('ccInterest').value||0);if(!Number.isInteger(installments)||installments<2||!Number.isFinite(interest)||interest<0){alert('Ingresa un número de cuotas válido y un interés igual o mayor que cero.');return}}const cyc=cycleFor(date,card);const purchase={id:Date.now()+Math.random(),date,desc,amount,card,mode,cat,installments,interest,cutoff:cyc.cutoff,due:cyc.due};data.cardPurchases.push(purchase);data.transactions.push({id:purchase.id,date,desc:desc+' ('+cardName(card)+')',cat,amount,kind:'gasto',paymentMethod:card,creditMode:mode,cardPurchaseId:purchase.id});save();$('ccPurchaseDesc').value='';$('ccPurchaseAmount').value='';render();renderCards();alert('Compra registrada. Se contabilizó una sola vez como gasto y se añadió a la deuda de la tarjeta.')};
-$('ccAddPayment').onclick=()=>{const date=$('ccPaymentDate').value,amount=Number($('ccPaymentAmount').value),card=$('ccPaymentCard').value,note=$('ccPaymentNote').value.trim();if(!date||!Number.isFinite(amount)||amount<=0){alert('Completa fecha y un valor de pago mayor que cero.');return}if(amount>cardBalance(card)+0.001&&!confirm('El pago supera la deuda calculada de '+money(cardBalance(card))+'. ¿Deseas registrarlo de todas formas?'))return;data.cardPayments.push({id:Date.now()+Math.random(),date,amount,card,note});save();$('ccPaymentAmount').value='';$('ccPaymentNote').value='';render();renderCards();alert('Pago registrado: la deuda disminuyó y el pago se descontó del disponible mensual sin duplicar el gasto.')};
-$('ccSaveSettings').onclick=()=>{const read=(id,min,max)=>{const v=Number($(id).value);if($(id).value.trim()===''||!Number.isFinite(v)||v<min||v>max)return null;return v};const l1=read('ccLimit1',0,100000000),c1=read('ccCutoff1',1,28),d1=read('ccDue1',1,28),l2=read('ccLimit2',0,100000000),c2=read('ccCutoff2',1,28),d2=read('ccDue2',1,28),o1=read('ccOpening1',0,100000000),o2=read('ccOpening2',0,100000000),n1=$('ccName1').value.trim(),n2=$('ccName2').value.trim();if([l1,c1,d1,l2,c2,d2,o1,o2].some(x=>x===null)||!n1||!n2){alert('Revisa nombres, cupos y días de corte/pago. Los días deben estar entre 1 y 28.');return}data.cards.card1={...cardObj('card1'),name:n1,limit:l1,cutoff:c1,due:d1,openingBalance:o1};data.cards.card2={...cardObj('card2'),name:n2,limit:l2,cutoff:c2,due:d2,openingBalance:o2};save();renderCards();alert('Configuración de tarjetas guardada. Los saldos iniciales se usarán como base para calcular la deuda pendiente.')};
-function loadCardSettings(){const c1=cardObj('card1'),c2=cardObj('card2');$('ccName1').value=c1.name;$('ccLimit1').value=c1.limit;$('ccCutoff1').value=c1.cutoff;$('ccDue1').value=c1.due;$('ccOpening1').value=c1.openingBalance;$('ccName2').value=c2.name;$('ccLimit2').value=c2.limit;$('ccCutoff2').value=c2.cutoff;$('ccDue2').value=c2.due;$('ccOpening2').value=c2.openingBalance}
-loadCardSettings();renderCards();
-
-render();
-initCloud();
-if("serviceWorker" in navigator && location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
-
-
-
-// --- AUTOCATEGORIZACION ---
-const reglasCategorias = [
-  {
-    categoria: 'Ahorro conjunto con novia',
-    palabras: ['ahorro melany', 'ahorro novia', 'ahorro con mel']
-  },
-  {
-    categoria: 'Salidas con mi novia',
-    palabras: ['melany', 'mel', 'solsito', 'cita', 'flores', 'regalo melany']
-  },
-  {
-    categoria: 'Gasolina',
-    palabras: ['gasolina', 'combustible', 'gasolinera', 'extra', 'super', 'disel', 'diesel']
-  },
-  {
-    categoria: 'Comida del gato',
-    palabras: ['gato', 'gatito', 'comida gato', 'arena', 'cat', 'nucita', 'veterinario']
-  },
-  {
-    categoria: 'Gastos de la casa',
-    palabras: ['arriendo', 'alquiler', 'luz', 'agua', 'internet', 'almacen el perno', 'el perno', 'supermercado', 'aki', 'gran aki']
-  },
-  {
-    categoria: 'Plan celular',
-    palabras: ['celular', 'plan', 'saldo', 'claro', 'movistar', 'cnt', 'tuenti']
-  },
-  {
-    categoria: 'Salidas con amigos',
-    palabras: ['amigos', 'reunion', 'parrillada', 'cerveza']
-  },
-  {
-    categoria: 'Zapatos',
-    palabras: ['zapatos', 'zapatillas', 'calzado', 'botas']
-  },
-  {
-    categoria: 'Ropa',
-    palabras: ['ropa', 'camisa', 'pantalon', 'pantalón', 'chaqueta', 'buzo']
-  },
-  {
-    categoria: 'Golosinas/antojos',
-    palabras: ['snack', 'antojo', 'dulce', 'café', 'café','chocolate','Salchipapa']
-  },
-  {
-    categoria: 'Alimentacion',
-    palabras: ['almuerzo', 'desayuno', 'cena', 'merienda','comida']
-  }
-];
-
-//Esto convierte el texto a minúsculas y elimina las tildes para facilitar las comparaciones.
- 
- function normalizarTexto(texto) {
-  return texto
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim();
-}
-
-function autoAsignarCategoria() {
-  const descInput = document.getElementById('desc');
-  const catSelect = document.getElementById('cat');
-  const kindSelect = document.getElementById('kind');
-  if (!descInput || !catSelect) return;
-
-  const texto = normalizarTexto(descInput.value);
-  if (!texto) return;
-
-  // 1. Detección exclusiva para Ahorro Personal (evitando que afecte a "ahorro melany")
-  const esAhorroPersonal = (texto === 'ahorro' || texto === 'ahorro personal' || texto === 'guardar ahorro') && !texto.includes('melany') && !texto.includes('novia');
-
-  if (esAhorroPersonal) {
-    if (kindSelect) {
-      kindSelect.value = 'ahorro'; 
-      kindSelect.dispatchEvent(new Event('change')); 
-    }
-    
-    // Buscar específicamente "Ahorro personal"
-    const targetOpt = Array.from(catSelect.options).find(opt => opt.value.toLowerCase() === 'ahorro personal');
-    if (targetOpt) {
-      catSelect.value = targetOpt.value;
-      catSelect.dispatchEvent(new Event('change')); 
-    }
-    return; 
-  } else {
-    // Si es un gasto normal o un ahorro con la novia, aseguramos que el tipo sea "gasto"
-    if (kindSelect && kindSelect.value !== 'gasto') {
-      kindSelect.value = 'gasto';
-      kindSelect.dispatchEvent(new Event('change'));
-    }
-  }
-
-  let encontrada = false;
-
-  // 2. Buscar coincidencias en las reglas normales (aquí evaluará "ahorro melany" correctamente)
-  for (const regla of reglasCategorias) {
-    if (regla.palabras.some(palabra =>
-  texto.includes(normalizarTexto(palabra))
-)) {
-      const options = Array.from(catSelect.options);
-      const targetOption = options.find(opt => opt.value === regla.categoria);
-      if (targetOption) {
-        catSelect.value = regla.categoria;
-        targetOption.dispatchEvent(new Event('change'));
-        encontrada = true;
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              900: '#14532d',
+            }
+          }
+        }
       }
-      break;
     }
-  }
-
-  // 3. Si no coincide con nada, asignar "Gastos varios"
-  if (!encontrada) {
-    const options = Array.from(catSelect.options);
-    const fallbackOption = options.find(opt => opt.value.toLowerCase() === 'gastos varios');
-    if (fallbackOption) {
-      catSelect.value = fallbackOption.value;
-      fallbackOption.dispatchEvent(new Event('change'));
+  </script>
+  <style>
+    /* Custom scrollbar & iOS safe areas */
+    body {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
-  }
-}
-
-// Vincular el evento input de manera segura
-const inputDesc = document.getElementById('desc');
-if (inputDesc) {
-  inputDesc.removeEventListener('input', autoAsignarCategoria);
-  inputDesc.addEventListener('input', autoAsignarCategoria);
-}
-
-// Autocategorización también para las compras con tarjeta
-function autoAsignarCategoriaTarjeta() {
-  const descInput = document.getElementById('ccPurchaseDesc');
-  const catSelect = document.getElementById('ccPurchaseCat');
-  if (!descInput || !catSelect) return;
-  const texto = normalizarTexto(descInput.value);
-  if (!texto) return;
-  let encontrada = false;
-  for (const regla of reglasCategorias) {
-    if (regla.palabras.some(palabra =>
-  texto.includes(normalizarTexto(palabra))
-)) {
-      const opcion = Array.from(catSelect.options).find(opt => opt.value === regla.categoria);
-      if (opcion) { catSelect.value = opcion.value; encontrada = true; }
-      break;
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom, 1rem);
     }
-  }
-  if (!encontrada) {
-    const fallback = Array.from(catSelect.options).find(opt => opt.value.toLowerCase() === 'gastos varios');
-    if (fallback) catSelect.value = fallback.value;
-  }
-}
-const ccDescInput = document.getElementById('ccPurchaseDesc');
-if (ccDescInput) {
-  ccDescInput.removeEventListener('input', autoAsignarCategoriaTarjeta);
-  ccDescInput.addEventListener('input', autoAsignarCategoriaTarjeta);
-}
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen font-sans antialiased transition-colors duration-200">
 
-// FIN CATEGORIZACION
-
-// Coloca esto en tu código JavaScript para detectar cuando Supabase redirige tras confirmar
-window.addEventListener('DOMContentLoaded', () => {
-  // Supabase suele mandar un hash con el tipo de acción o un token de acceso
-  const hash = window.location.hash;
-  
-  if (hash && (hash.includes('type=signup') || hash.includes('access_token'))) {
-    // Aquí puedes mostrar un mensaje en pantalla de forma elegante
-    alert("¡Cuenta confirmada y creada correctamente! Ya puedes usar tu presupuesto.");
+  <!-- App Wrapper -->
+  <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col relative pb-20 shadow-xl bg-white dark:bg-gray-900 border-x border-gray-100 dark:border-gray-800">
     
-    // O si prefieres mostrarlo en un elemento HTML de tu página:
-    // document.getElementById('mensaje-exito').innerText = "¡Cuenta confirmada con éxito!";
-  }
-});
+    <!-- Top Header -->
+    <header class="p-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur sticky top-0 z-20">
+      <div class="flex items-center space-x-2">
+        <div class="w-9 h-9 rounded-xl bg-brand-500 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-brand-500/20">
+          $
+        </div>
+        <div>
+          <h1 class="text-base font-bold leading-tight">Mi Presupuesto</h1>
+          <p id="cloudStatus" class="text-xs text-gray-400 flex items-center gap-1">
+            <i data-lucide="hard-drive" class="w-3 h-3"></i> Local
+          </p>
+        </div>
+      </div>
+      <button id="themeToggleBtn" class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+        <i data-lucide="moon" id="themeIcon" class="w-5 h-5"></i>
+      </button>
+    </header>
 
- // --- GUARDAR CON LA TECLA ENTER EN TODOS LOS FORMULARIOS ---
-const atajosEnter = [
-  // 1. Depósito recibido (Ingreso de ASSA)
-  { inputs: ['income'], btn: 'saveIncome' },
-  
-  // 2. Ingresos adicionales
-  { inputs: ['extraDate', 'extraAmount', 'extraDesc'], btn: 'addExtraIncome' },
-  
-  // 3. Registrar movimiento
-  { inputs: ['date', 'desc', 'amount'], btn: 'add' },
-  
-  // 4. Modificar límite mensual
-  { inputs: ['editBudgetLimit'], btn: 'saveBudgetLimit' },
-  
-  // 5. Crear nueva categoría
-  { inputs: ['newCat', 'newCatLimit'], btn: 'addCat' },
-  { inputs: ['ccPurchaseDate','ccPurchaseAmount','ccPurchaseDesc'], btn: 'ccAddPurchase' },
-  { inputs: ['ccPaymentDate','ccPaymentAmount','ccPaymentNote'], btn: 'ccAddPayment' }
-];
+    <!-- MAIN CONTENT VIEWS -->
+    <main class="flex-1 p-4 overflow-y-auto">
+      
+      <!-- 1. INICIO / DASHBOARD VIEW -->
+      <section id="view-inicio" class="space-y-5">
+        <!-- Balance Cards -->
+        <div class="p-5 rounded-2xl bg-gradient-to-br from-brand-600 to-emerald-800 text-white shadow-lg shadow-brand-600/20 relative overflow-hidden">
+          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+          <p class="text-xs font-medium text-brand-100 uppercase tracking-wider">Balance Total</p>
+          <h2 id="totalBalanceText" class="text-3xl font-extrabold mt-1">$0.00</h2>
+          
+          <div class="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-white/15 text-sm">
+            <div>
+              <span class="text-xs text-brand-100 block">Ingresos</span>
+              <span id="totalIncomeText" class="font-semibold text-emerald-200">+$0.00</span>
+            </div>
+            <div>
+              <span class="text-xs text-brand-100 block">Gastos</span>
+              <span id="totalExpenseText" class="font-semibold text-red-200">-$0.00</span>
+            </div>
+          </div>
+        </div>
 
-// Asignar el evento Enter a cada campo de forma automática
-atajosEnter.forEach(grupo => {
-  grupo.inputs.forEach(idInput => {
-    const el = document.getElementById(idInput);
-    if (el) {
-      el.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          e.preventDefault(); // Evita comportamientos por defecto del navegador
-          const btn = document.getElementById(grupo.btn);
-          if (btn) btn.click(); // Simula el clic en el botón correspondiente
+        <!-- Expense Chart -->
+        <div class="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 shadow-sm">
+          <h3 class="text-sm font-semibold mb-3 flex items-center justify-between">
+            <span>Distribución de Gastos</span>
+            <span class="text-xs text-gray-400 font-normal">Este Mes</span>
+          </h3>
+          <div class="relative w-full h-48 flex items-center justify-center">
+            <canvas id="expensesChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Recent Activity Preview -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold">Últimos Movimientos</h3>
+            <button onclick="switchTab('movimientos')" class="text-xs text-brand-600 dark:text-brand-400 font-medium">Ver todos</button>
+          </div>
+          <div id="recentMovementsList" class="space-y-2">
+            <!-- Dynamic Content -->
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. REGISTRAR VIEW (Separated Tab for Cash/Bank Entries) -->
+      <section id="view-registrar" class="hidden space-y-4">
+        <div class="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 shadow-sm">
+          <div class="flex items-center space-x-2 mb-4 pb-2 border-b border-gray-100 dark:border-gray-700">
+            <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400">
+              <i data-lucide="plus-circle" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold">Registrar Movimiento Diario</h3>
+              <p class="text-xs text-gray-400">Efectivo, transferencias o débito</p>
+            </div>
+          </div>
+
+          <form id="quickAddForm" class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Tipo de transacción</label>
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" id="btnTypeExpense" onclick="setEntryType('gasto')" class="py-2 text-xs font-semibold rounded-xl border border-red-500 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400">
+                  Gasto
+                </button>
+                <button type="button" id="btnTypeIncome" onclick="setEntryType('ingreso')" class="py-2 text-xs font-semibold rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300">
+                  Ingreso
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Monto ($)</label>
+              <input type="number" step="0.01" id="inputAmount" placeholder="0.00" required class="w-full px-3 py-2 text-base rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Concepto / Descripción</label>
+              <input type="text" id="inputConcept" placeholder="Ej. Almuerzo, Uber, Sueldo..." required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Categoría</label>
+              <select id="selectCategory" class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="Comida">Comida / Alimentación</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Servicios">Servicios y Hogar</option>
+                <option value="Entretenimiento">Entretenimiento</option>
+                <option value="Salud">Salud y Bienestar</option>
+                <option value="Sueldo">Sueldo / Ingresos</option>
+                <option value="Otros">Otros</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Fecha</label>
+              <input type="date" id="inputDate" required class="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+
+            <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-brand-600/30 transition flex items-center justify-center space-x-2">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              <span>Guardar Transacción</span>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- 3. MOVIMIENTOS VIEW (Full History & Filter) -->
+      <section id="view-movimientos" class="hidden space-y-4">
+        <!-- Filter and Search -->
+        <div class="flex items-center space-x-2">
+          <div class="relative flex-1">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-gray-400"></i>
+            <input type="text" id="searchMovements" placeholder="Buscar por concepto..." class="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+          </div>
+          <select id="filterCategory" class="px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="ALL">Todas</option>
+            <option value="Comida">Comida</option>
+            <option value="Transporte">Transporte</option>
+            <option value="Servicios">Servicios</option>
+            <option value="Entretenimiento">Entretenimiento</option>
+            <option value="Salud">Salud</option>
+            <option value="Sueldo">Sueldo</option>
+            <option value="Tarjeta">Tarjetas</option>
+            <option value="Otros">Otros</option>
+          </select>
+        </div>
+
+        <!-- Full List -->
+        <div id="fullMovementsList" class="space-y-2">
+          <!-- Dynamic Content -->
+        </div>
+      </section>
+
+      <!-- 4. PRESUPUESTO VIEW -->
+      <section id="view-presupuesto" class="hidden space-y-4">
+        <div class="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 shadow-sm space-y-3">
+          <h3 class="text-sm font-semibold">Configurar Presupuesto Mensual</h3>
+          <div class="flex space-x-2">
+            <input type="number" id="inputBudgetGoal" placeholder="Ej. 1500" class="flex-1 px-3 py-2 text-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <button onclick="saveBudgetGoal()" class="px-4 py-2 bg-brand-600 text-white text-xs font-semibold rounded-xl">Guardar</button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 shadow-sm space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-gray-400">Progreso del Mes</span>
+            <span id="budgetTextPercent" class="text-xs font-bold text-brand-600 dark:text-brand-400">0%</span>
+          </div>
+          <div class="w-full bg-gray-100 dark:bg-gray-700 h-3 rounded-full overflow-hidden">
+            <div id="budgetProgressBar" class="bg-brand-500 h-full w-0 transition-all duration-300"></div>
+          </div>
+          <div class="flex justify-between text-xs font-medium pt-1">
+            <span id="budgetSpentText">Gastado: $0.00</span>
+            <span id="budgetLimitText">Meta: $0.00</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. TARJETAS VIEW -->
+      <section id="view-tarjetas" class="hidden space-y-4">
+        <!-- Add Card Form -->
+        <div class="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 shadow-sm">
+          <h3 class="text-sm font-semibold mb-3">Agregar Tarjeta</h3>
+          <form id="addCardForm" class="space-y-3">
+            <input type="text" id="cardName" placeholder="Nombre de la tarjeta (Ej. Visa Credito)" required class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            <div class="grid grid-cols-2 gap-2">
+              <input type="number" id="cardCutDay" placeholder="Día Cierre (1-31)" min="1" max="31" required class="px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" id="cardPayDay" placeholder="Día Pago (1-31)" min="1" max="31" required class="px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <button type="submit" class="w-full py-2 bg-brand-600 text-white text-xs font-semibold rounded-xl shadow-md">Guardar Tarjeta</button>
+          </form>
+        </div>
+
+        <!-- Cards List -->
+        <div id="cardsList" class="space-y-3">
+          <!-- Dynamic Content -->
+        </div>
+      </section>
+
+      <!-- 6. AJUSTES VIEW (Supabase Sync) -->
+      <section id="view-ajustes" class="hidden space-y-4">
+        <div class="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 shadow-sm space-y-3">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="cloud" class="w-5 h-5 text-brand-500"></i>
+            <h3 class="text-sm font-semibold">Sincronización en la Nube (Supabase)</h3>
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Conecta tu propia base de datos Supabase para respaldar y sincronizar tus movimientos en tiempo real.
+          </p>
+
+          <div class="space-y-2 pt-2">
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Supabase URL</label>
+              <input type="text" id="supabaseUrl" placeholder="https://xyz.supabase.co" class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1">Supabase Anon Key</label>
+              <input type="password" id="supabaseKey" placeholder="eyJhbGciOi..." class="w-full px-3 py-2 text-xs rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+            <button onclick="saveSupabaseConfig()" class="w-full py-2.5 bg-gray-900 dark:bg-gray-700 text-white text-xs font-semibold rounded-xl">
+              Conectar / Actualizar
+            </button>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/60 shadow-sm space-y-2">
+          <h3 class="text-sm font-semibold text-red-600">Zona de Riesgo</h3>
+          <p class="text-xs text-gray-400">Restablece los datos locales almacenados en tu navegador.</p>
+          <button onclick="resetAllData()" class="w-full py-2 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 text-xs font-semibold rounded-xl">
+            Borrar Todos los Datos Locales
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar (6 Tabs) -->
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/90 dark:bg-gray-900/90 backdrop-blur border-t border-gray-100 dark:border-gray-800 px-2 py-2 flex justify-around items-center z-30 pb-safe">
+      <button onclick="switchTab('inicio')" id="nav-inicio" class="nav-btn flex flex-col items-center p-1 text-brand-600 dark:text-brand-400">
+        <i data-lucide="home" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Inicio</span>
+      </button>
+
+      <button onclick="switchTab('registrar')" id="nav-registrar" class="nav-btn flex flex-col items-center p-1 text-gray-400 hover:text-gray-600">
+        <i data-lucide="plus-circle" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Registrar</span>
+      </button>
+
+      <button onclick="switchTab('movimientos')" id="nav-movimientos" class="nav-btn flex flex-col items-center p-1 text-gray-400 hover:text-gray-600">
+        <i data-lucide="list font-bold" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Movs</span>
+      </button>
+
+      <button onclick="switchTab('presupuesto')" id="nav-presupuesto" class="nav-btn flex flex-col items-center p-1 text-gray-400 hover:text-gray-600">
+        <i data-lucide="pie-chart" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Metas</span>
+      </button>
+
+      <button onclick="switchTab('tarjetas')" id="nav-tarjetas" class="nav-btn flex flex-col items-center p-1 text-gray-400 hover:text-gray-600">
+        <i data-lucide="credit-card" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Tarjetas</span>
+      </button>
+
+      <button onclick="switchTab('ajustes')" id="nav-ajustes" class="nav-btn flex flex-col items-center p-1 text-gray-400 hover:text-gray-600">
+        <i data-lucide="settings" class="w-5 h-5"></i>
+        <span class="text-[10px] font-medium mt-0.5">Ajustes</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    // --- STATE MANAGEMENT ---
+    let state = {
+      transactions: [],
+      cards: [],
+      budgetGoal: 0,
+      supabaseUrl: '',
+      supabaseKey: '',
+      theme: 'light'
+    };
+
+    let selectedEntryType = 'gasto'; // 'gasto' | 'ingreso'
+    let supabaseClient = null;
+    let myChart = null;
+
+    // --- INITIALIZATION ---
+    document.addEventListener('DOMContentLoaded', () => {
+      loadStateFromLocalStorage();
+      initTheme();
+      initDateInput();
+      initSupabase();
+      renderAll();
+      lucide.createIcons();
+
+      // Form Listeners
+      document.getElementById('quickAddForm').addEventListener('submit', handleAddTransaction);
+      document.getElementById('addCardForm').addEventListener('submit', handleAddCard);
+      document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+      document.getElementById('searchMovements').addEventListener('input', renderMovements);
+      document.getElementById('filterCategory').addEventListener('change', renderMovements);
+    });
+
+    function initDateInput() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('inputDate').value = today;
+    }
+
+    // --- LOCAL STORAGE ---
+    function loadStateFromLocalStorage() {
+      const saved = localStorage.getItem('presupuesto_app_data');
+      if (saved) {
+        try {
+          state = JSON.parse(saved);
+        } catch (e) {
+          console.error("Error parsing localStorage", e);
+        }
+      }
+      document.getElementById('inputBudgetGoal').value = state.budgetGoal || '';
+      document.getElementById('supabaseUrl').value = state.supabaseUrl || '';
+      document.getElementById('supabaseKey').value = state.supabaseKey || '';
+    }
+
+    function saveState() {
+      localStorage.setItem('presupuesto_app_data', JSON.stringify(state));
+      renderAll();
+      syncToSupabase();
+    }
+
+    // --- SUPABASE INTEGRATION ---
+    function initSupabase() {
+      if (state.supabaseUrl && state.supabaseKey) {
+        try {
+          supabaseClient = supabase.createClient(state.supabaseUrl, state.supabaseKey);
+          document.getElementById('cloudStatus').innerHTML = `<i data-lucide="cloud" class="w-3 h-3 text-brand-500"></i> Nube Activa`;
+        } catch (err) {
+          console.error("Supabase config error:", err);
+          document.getElementById('cloudStatus').innerHTML = `<i data-lucide="alert-circle" class="w-3 h-3 text-red-500"></i> Error Config`;
+        }
+      } else {
+        document.getElementById('cloudStatus').innerHTML = `<i data-lucide="hard-drive" class="w-3 h-3"></i> Local`;
+      }
+      lucide.createIcons();
+    }
+
+    function saveSupabaseConfig() {
+      state.supabaseUrl = document.getElementById('supabaseUrl').value.trim();
+      state.supabaseKey = document.getElementById('supabaseKey').value.trim();
+      saveState();
+      initSupabase();
+      alert('Configuración de Supabase guardada correctamente.');
+    }
+
+    async function syncToSupabase() {
+      if (!supabaseClient) return;
+      // Backup state snapshot into a 'app_backups' table if configured
+      try {
+        await supabaseClient.from('backups').upsert({ id: 1, data: state, updated_at: new Date() });
+      } catch (e) {
+        console.log('Supabase sync skipped/failed:', e);
+      }
+    }
+
+    // --- THEME SWITCHER ---
+    function initTheme() {
+      if (state.theme === 'dark' || (!('theme' in state) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        state.theme = 'dark';
+      } else {
+        document.documentElement.classList.remove('dark');
+        state.theme = 'light';
+      }
+      updateThemeIcon();
+    }
+
+    function toggleTheme() {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      if (state.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      updateThemeIcon();
+      saveState();
+    }
+
+    function updateThemeIcon() {
+      const icon = document.getElementById('themeIcon');
+      if (state.theme === 'dark') {
+        icon.setAttribute('data-lucide', 'sun');
+      } else {
+        icon.setAttribute('data-lucide', 'moon');
+      }
+      lucide.createIcons();
+    }
+
+    // --- TAB NAVIGATION ---
+    function switchTab(tabId) {
+      const tabs = ['inicio', 'registrar', 'movimientos', 'presupuesto', 'tarjetas', 'ajustes'];
+      tabs.forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        const navBtn = document.getElementById(`nav-${t}`);
+        if (t === tabId) {
+          view.classList.remove('hidden');
+          navBtn.classList.add('text-brand-600', 'dark:text-brand-400');
+          navBtn.classList.remove('text-gray-400');
+        } else {
+          view.classList.add('hidden');
+          navBtn.classList.remove('text-brand-600', 'dark:text-brand-400');
+          navBtn.classList.add('text-gray-400');
         }
       });
     }
-  });
-});
 
-  // FIN GUARDAR CON LA TECLA ENTER EN TODOS LOS FORMULARIOS ---
+    // --- TRANSACTION TYPE SELECTOR ---
+    function setEntryType(type) {
+      selectedEntryType = type;
+      const btnGasto = document.getElementById('btnTypeExpense');
+      const btnIngreso = document.getElementById('btnTypeIncome');
 
- 
-</script></body></html>
+      if (type === 'gasto') {
+        btnGasto.className = "py-2 text-xs font-semibold rounded-xl border border-red-500 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400";
+        btnIngreso.className = "py-2 text-xs font-semibold rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300";
+      } else {
+        btnIngreso.className = "py-2 text-xs font-semibold rounded-xl border border-brand-500 bg-brand-50 dark:bg-brand-950/40 text-brand-600 dark:text-brand-400";
+        btnGasto.className = "py-2 text-xs font-semibold rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300";
+      }
+    }
 
+    // --- ADD TRANSACTIONS ---
+    function handleAddTransaction(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('inputAmount').value);
+      const concept = document.getElementById('inputConcept').value.trim();
+      const category = document.getElementById('selectCategory').value;
+      const date = document.getElementById('inputDate').value;
 
+      if (!amount || !concept || !date) return;
 
+      const newTx = {
+        id: Date.now().toString(),
+        type: selectedEntryType,
+        amount: amount,
+        concept: concept,
+        category: category,
+        date: date
+      };
+
+      state.transactions.unshift(newTx);
+      saveState();
+
+      // Reset form & redirect to Inicio
+      document.getElementById('inputAmount').value = '';
+      document.getElementById('inputConcept').value = '';
+      switchTab('inicio');
+    }
+
+    function deleteTransaction(id) {
+      state.transactions = state.transactions.filter(t => t.id !== id);
+      saveState();
+    }
+
+    // --- CARDS LOGIC ---
+    function handleAddCard(e) {
+      e.preventDefault();
+      const name = document.getElementById('cardName').value.trim();
+      const cut = parseInt(document.getElementById('cardCutDay').value);
+      const pay = parseInt(document.getElementById('cardPayDay').value);
+
+      if (!name || !cut || !pay) return;
+
+      state.cards.push({ id: Date.now().toString(), name, cut, pay });
+      saveState();
+
+      document.getElementById('addCardForm').reset();
+    }
+
+    function deleteCard(id) {
+      state.cards = state.cards.filter(c => c.id !== id);
+      saveState();
+    }
+
+    // --- BUDGET LOGIC ---
+    function saveBudgetGoal() {
+      const val = parseFloat(document.getElementById('inputBudgetGoal').value);
+      state.budgetGoal = isNaN(val) ? 0 : val;
+      saveState();
+      alert('Meta de presupuesto actualizada.');
+    }
+
+    // --- RENDERING VIEWS ---
+    function renderAll() {
+      renderDashboard();
+      renderMovements();
+      renderBudget();
+      renderCards();
+      lucide.createIcons();
+    }
+
+    function renderDashboard() {
+      let income = 0;
+      let expense = 0;
+
+      const categoryTotals = {};
+
+      state.transactions.forEach(t => {
+        if (t.type === 'ingreso') {
+          income += t.amount;
+        } else {
+          expense += t.amount;
+          categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
+        }
+      });
+
+      const balance = income - expense;
+
+      document.getElementById('totalBalanceText').innerText = `$${balance.toFixed(2)}`;
+      document.getElementById('totalIncomeText').innerText = `+$${income.toFixed(2)}`;
+      document.getElementById('totalExpenseText').innerText = `-$${expense.toFixed(2)}`;
+
+      // Render Recent List (Top 4)
+      const recentContainer = document.getElementById('recentMovementsList');
+      recentContainer.innerHTML = '';
+      const recent = state.transactions.slice(0, 4);
+
+      if (recent.length === 0) {
+        recentContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">No hay movimientos registrados.</p>`;
+      } else {
+        recent.forEach(t => {
+          recentContainer.appendChild(createMovementItem(t));
+        });
+      }
+
+      // Render Chart
+      renderChart(categoryTotals);
+    }
+
+    function renderMovements() {
+      const container = document.getElementById('fullMovementsList');
+      container.innerHTML = '';
+
+      const query = document.getElementById('searchMovements').value.toLowerCase();
+      const categoryFilter = document.getElementById('filterCategory').value;
+
+      const filtered = state.transactions.filter(t => {
+        const matchesQuery = t.concept.toLowerCase().includes(query);
+        const matchesCategory = categoryFilter === 'ALL' || t.category === categoryFilter;
+        return matchesQuery && matchesCategory;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">No se encontraron transacciones.</p>`;
+        return;
+      }
+
+      filtered.forEach(t => {
+        container.appendChild(createMovementItem(t, true));
+      });
+
+      lucide.createIcons();
+    }
+
+    function createMovementItem(t, showDelete = false) {
+      const div = document.createElement('div');
+      div.className = "flex items-center justify-between p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700/50 shadow-sm";
+      
+      const isExpense = t.type === 'gasto';
+      const iconName = isExpense ? 'arrow-down-left' : 'arrow-up-right';
+      const colorClass = isExpense ? 'text-red-500 bg-red-50 dark:bg-red-950/40' : 'text-brand-500 bg-brand-50 dark:bg-brand-950/40';
+
+      div.innerHTML = `
+        <div class="flex items-center space-x-3">
+          <div class="p-2 rounded-xl ${colorClass}">
+            <i data-lucide="${iconName}" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold leading-tight">${t.concept}</h4>
+            <span class="text-[10px] text-gray-400">${t.category} • ${t.date}</span>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="text-xs font-bold ${isExpense ? 'text-gray-800 dark:text-gray-100' : 'text-brand-600 dark:text-brand-400'}">
+            ${isExpense ? '-' : '+'}$${t.amount.toFixed(2)}
+          </span>
+          ${showDelete ? `
+            <button onclick="deleteTransaction('${t.id}')" class="text-gray-300 hover:text-red-500 p-1">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
+          ` : ''}
+        </div>
+      `;
+      return div;
+    }
+
+    function renderBudget() {
+      const totalSpent = state.transactions
+        .filter(t => t.type === 'gasto')
+        .reduce((acc, curr) => acc + curr.amount, 0);
+
+      const goal = state.budgetGoal || 0;
+      const percent = goal > 0 ? Math.min(100, Math.round((totalSpent / goal) * 100)) : 0;
+
+      document.getElementById('budgetSpentText').innerText = `Gastado: $${totalSpent.toFixed(2)}`;
+      document.getElementById('budgetLimitText').innerText = `Meta: $${goal.toFixed(2)}`;
+      document.getElementById('budgetTextPercent').innerText = `${percent}%`;
+
+      const bar = document.getElementById('budgetProgressBar');
+      bar.style.width = `${percent}%`;
+      
+      if (percent > 90) {
+        bar.className = "bg-red-500 h-full transition-all duration-300";
+      } else {
+        bar.className = "bg-brand-500 h-full transition-all duration-300";
+      }
+    }
+
+    function renderCards() {
+      const container = document.getElementById('cardsList');
+      container.innerHTML = '';
+
+      if (state.cards.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">No has registrado tarjetas de crédito aún.</p>`;
+        return;
+      }
+
+      state.cards.forEach(c => {
+        const div = document.createElement('div');
+        div.className = "p-4 rounded-2xl bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-md relative overflow-hidden";
+        div.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-xs text-gray-400">Tarjeta</p>
+              <h4 class="text-sm font-bold mt-0.5">${c.name}</h4>
+            </div>
+            <button onclick="deleteCard('${c.id}')" class="text-gray-500 hover:text-red-400">
+              <i data-lucide="trash" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-gray-700/50 text-xs">
+            <div>
+              <span class="text-gray-400 block text-[10px]">Cierre</span>
+              <span class="font-medium">Día ${c.cut} de cada mes</span>
+            </div>
+            <div>
+              <span class="text-gray-400 block text-[10px]">Límite de Pago</span>
+              <span class="font-medium text-emerald-400">Día ${c.pay} de cada mes</span>
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderChart(categoryTotals) {
+      const ctx = document.getElementById('expensesChart').getContext('2d');
+      const labels = Object.keys(categoryTotals);
+      const data = Object.values(categoryTotals);
+
+      if (myChart) {
+        myChart.destroy();
+      }
+
+      if (labels.length === 0) {
+        myChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Sin gastos'],
+            datasets: [{ data: [1], backgroundColor: ['#e5e7eb'] }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } }
+          }
+        });
+        return;
+      }
+
+      myChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: [
+              '#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6b7280'
+            ],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { boxWidth: 12, font: { size: 10 } }
+            }
+          }
+        }
+      });
+    }
+
+    function resetAllData() {
+      if (confirm('¿Estás seguro de que deseas eliminar todos los datos locales?')) {
+        localStorage.removeItem('presupuesto_app_data');
+        state = { transactions: [], cards: [], budgetGoal: 0, supabaseUrl: '', supabaseKey: '', theme: 'light' };
+        renderAll();
+        alert('Datos restablecidos.');
+      }
+    }
+  </script>
+</body>
+</html>
