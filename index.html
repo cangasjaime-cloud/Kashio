@@ -676,7 +676,7 @@ function render(){
  let adviceEl = $('aiAdvice');
  if(adviceEl){
    if(inc === 0){
-     adviceEl.textContent = '💡 Consejo: Ingresa tu sueldo o depósito de ASSA para calcular tu meta de ahorro óptima.';
+     adviceEl.textContent = '💡 Consejo: Ingresa tu sueldo o depósito para calcular tu meta de ahorro óptima.';
    } else if(sv >= recommendedSavings * 0.5){
      adviceEl.textContent = `🎯 ¡Excelente ritmo! Tu meta de ahorro sugerida basada en tus ingresos menos gastos fijos es de ${money(recommendedSavings)}. ¡Vas por buen camino!`;
    } else {
