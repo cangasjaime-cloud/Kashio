@@ -323,7 +323,7 @@ td button{padding:5px 8px;font-size:.72rem}
         </div>
       </div>
       <div id="ccInstallmentFields" class="row" hidden>
-        <div><label for="ccInstallments">Número de cuotas</label><input id="ccInstallments" type="number" min="2" step="1" value="3"></div>
+        <div><label for="ccInstallments">Número de cuotas</label><input id="ccInstallments" type="number" min="1" step="1" value="1"></div>
         <div><label for="ccInterest">Interés estimado ($)</label><input id="ccInterest" type="number" min="0" step=".01" value="0"></div>
       </div>
       <p id="ccCyclePreview" class="note"></p>
@@ -743,7 +743,7 @@ $('ccAddPurchase').onclick=()=>{
  let installments=1,interest=0;
  if(mode==='diferido'){
   installments=Number($('ccInstallments').value);interest=Number($('ccInterest').value||0);
-  if(!Number.isInteger(installments)||installments<2||!Number.isFinite(interest)||interest<0){alert('Ingresa un número de cuotas válido.');return}
+  if(!Number.isInteger(installments)||installments<1||!Number.isFinite(interest)||interest<0){alert('Ingresa un número de cuotas válido.');return}
  }
  const cyc=cycleFor(date,card);
  const purchase={id:Date.now()+Math.random(),date,desc,amount,card,mode,cat,installments,interest,cutoff:cyc.cutoff,due:cyc.due};
