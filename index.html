@@ -59,6 +59,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
 .row,.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .row.three{grid-template-columns:1.2fr .8fr 1fr}
+.row.four{grid-template-columns:1.2fr 1fr 1fr 0.8fr}
 .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .stat{background:#f8fafc;border-radius:12px;padding:12px;border:1px solid #f1f5f9;min-width:0}
 .stat small{display:block;color:#64748b;font-size:.7rem;margin-bottom:3px;font-weight:600}
@@ -125,6 +126,7 @@ tr:last-child td{border-bottom:0}
 @media(max-width:580px){
   .movements-controls{flex-direction:column;max-width:100%}
   .movements-controls input, .movements-controls select{width:100%}
+  .row.four{grid-template-columns:1fr}
 }
 @media(max-width:420px){
   main{padding:12px 8px 22px}
@@ -137,7 +139,7 @@ tr:last-child td{border-bottom:0}
 
 <header>
   <h1>Mi Presupuesto</h1>
-  <div>Ingresos, gastos y ahorro en un solo lugar</div>
+  <div>Ingresos, gastos y ahorro inteligente</div>
 </header>
 
 <main>
@@ -152,7 +154,7 @@ tr:last-child td{border-bottom:0}
     </div>
     <div class="home-grid">
       <section class="card summary-header-card">
-        <h2>Resumen financiero</h2>
+        <h2>Resumen financiero e inteligencia de ahorro</h2>
         
         <!-- Gráfico Estilo Dona -->
         <div class="chart-container">
@@ -182,6 +184,7 @@ tr:last-child td{border-bottom:0}
           <div class="stat"><small>Disponible libre</small><strong id="mLeft">$0,00</strong></div>
         </div>
         <p id="summary" class="note"></p>
+        <p id="aiAdvice" class="note" style="margin-top:8px;padding:8px;background:rgba(255,255,255,0.1);border-radius:8px;color:#e2e8f0;font-weight:600"></p>
       </section>
 
       <section class="card">
@@ -285,19 +288,19 @@ tr:last-child td{border-bottom:0}
     <div class="page-heading">
       <div>
         <p class="eyebrow">PLANIFICA CON INTENCIÓN</p>
-        <h2 id="budgetTitle">Presupuesto</h2>
-        <p class="subheading">Controla tus límites y organiza tus categorías.</p>
+        <h2 id="budgetTitle">Presupuesto y Metas</h2>
+        <p class="subheading">Controla tus límites, clasifica tus gastos y visualiza tu meta de ahorro.</p>
       </div>
     </div>
     <section class="card">
-      <h2>Tu presupuesto</h2>
-      <p class="note">Límites iniciales editables. Ajusta los gastos variables si recibes menos dinero.</p>
+      <h2>Tu presupuesto y metas de ahorro</h2>
+      <p class="note">Visualiza tus gastos fijos obligatorios, metas de ahorro y límites variables.</p>
       <div id="budget"></div>
       <div class="card" style="background:#f8fafc;margin-top:14px;padding:12px;border:1px solid var(--line)">
-        <h2>Modificar límite variable</h2>
+        <h2>Modificar límite mensual</h2>
         <label for="editBudgetCat">Selecciona la categoría</label>
         <select id="editBudgetCat"></select>
-        <label for="editBudgetLimit">Nuevo límite mensual ($)</label>
+        <label for="editBudgetLimit">Nuevo límite ($)</label>
         <input id="editBudgetLimit" type="number" min="0" step=".01" placeholder="Ej. 35.00">
         <button id="saveBudgetLimit">Guardar límite</button>
       </div>
@@ -305,14 +308,20 @@ tr:last-child td{border-bottom:0}
 
     <section class="card">
       <h2>Administrar categorías</h2>
-      <p class="note">Puedes crear categorías nuevas o eliminar las que ya no necesites.</p>
+      <p class="note">Crea tus categorías indicando si son gastos fijos o variables.</p>
       <label for="newCat">Nueva categoría</label>
-      <div class="row three">
-        <div><input id="newCat" placeholder="Ej. Salud, transporte"></div>
+      <div class="row four">
+        <div><input id="newCat" placeholder="Ej. Arriendo, salidas"></div>
         <div><input id="newCatLimit" type="number" min="0" step=".01" placeholder="Límite $"></div>
+        <div>
+          <select id="newCatType">
+            <option value="fijo">Gasto Fijo</option>
+            <option value="variable">Gasto Variable</option>
+          </select>
+        </div>
         <div><button id="addCat" style="margin-top:0">Agregar</button></div>
       </div>
-      <label for="deleteCatSelect">Eliminar categoría</label>
+      <label for="deleteCatSelect" style="margin-top:14px">Eliminar categoría</label>
       <div class="row">
         <div><select id="deleteCatSelect"><option value="">Selecciona una categoría</option></select></div>
         <div><button class="alt" id="deleteCat" style="margin-top:0" disabled>Eliminar</button></div>
@@ -530,7 +539,7 @@ const cloudConfigured=()=>Boolean(window.MI_SUPABASE_URL && window.MI_SUPABASE_A
 function cloudMessage(msg){const el=document.getElementById("cloudStatus");if(el)el.textContent=msg}
 function scheduleCloudSave(){if(!cloudClient||!cloudUser||cloudLoading)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(async()=>{try{const {error}=await cloudClient.from("budget_data").upsert({user_id:cloudUser.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(error)throw error;cloudMessage("Sesión activa: cambios guardados en la nube.")}catch(e){cloudMessage("No se pudo sincronizar. Revisa la conexión; tus cambios siguen guardados en este dispositivo.")}},700)}
 
-async function loadCloudData(user){cloudUser=user;cloudLoading=true;try{const {data:row,error}=await cloudClient.from("budget_data").select("data").eq("user_id",user.id).maybeSingle();if(error)throw error;if(row&&row.data){data={...data,...row.data,additionalIncomes:Array.isArray(row.data.additionalIncomes)?row.data.additionalIncomes:[],budgets:{...defaults,...row.data.budgets},categories:Array.isArray(row.data.categories)?row.data.categories:[]};localStorage.setItem("miPresupuesto",JSON.stringify(data));render();cloudMessage("Sesión activa: tus datos se cargaron desde la nube.")}else{const {error:upErr}=await cloudClient.from("budget_data").upsert({user_id:user.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(upErr)throw upErr;cloudMessage("Cuenta conectada. Los datos locales se guardaron en la nube.")}document.getElementById("cloudEmail").value=user.email||"";document.getElementById("cloudPassword").value="";document.getElementById("cloudLogin").disabled=true;document.getElementById("cloudSignup").disabled=true;document.getElementById("cloudLogout").disabled=false;}catch(e){cloudMessage("Error al cargar o guardar en la nube: "+(e.message||"verifica políticas RLS"));cloudUser=null;}finally{cloudLoading=false}}
+async function loadCloudData(user){cloudUser=user;cloudLoading=true;try{const {data:row,error}=await cloudClient.from("budget_data").select("data").eq("user_id",user.id).maybeSingle();if(error)throw error;if(row&&row.data){data={...data,...row.data,additionalIncomes:Array.isArray(row.data.additionalIncomes)?row.data.additionalIncomes:[],budgets:{...defaults,...(row.data.budgets||{})},categories:Array.isArray(row.data.categories)?row.data.categories:[],categoryTypes:{...(row.data.categoryTypes||{})}};localStorage.setItem("miPresupuesto",JSON.stringify(data));render();cloudMessage("Sesión activa: tus datos se cargaron desde la nube.")}else{const {error:upErr}=await cloudClient.from("budget_data").upsert({user_id:user.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(upErr)throw upErr;cloudMessage("Cuenta conectada. Los datos locales se guardaron en la nube.")}document.getElementById("cloudEmail").value=user.email||"";document.getElementById("cloudPassword").value="";document.getElementById("cloudLogin").disabled=true;document.getElementById("cloudSignup").disabled=true;document.getElementById("cloudLogout").disabled=false;}catch(e){cloudMessage("Error al cargar o guardar en la nube: "+(e.message||"verifica políticas RLS"));cloudUser=null;}finally{cloudLoading=false}}
 
 async function initCloud(){if(!cloudConfigured()||!window.supabase){cloudMessage("Falta configurar Supabase. Los datos se guardan localmente.");return}cloudClient=window.supabase.createClient(window.MI_SUPABASE_URL,window.MI_SUPABASE_ANON_KEY);const showRecoveryForm=()=>{resetRequestBox.hidden=true;resetPasswordBox.hidden=false;cloudMessage("Enlace de recuperación detectado. Escribe tu nueva contraseña.")};const recoveryRequestedAt=Number(localStorage.getItem("miPresupuestoRecoveryRequestedAt")||0);const recoveryWasRequested=Date.now()-recoveryRequestedAt<30*60*1000;const hashParams=new URLSearchParams(window.location.hash.slice(1));const queryParams=new URLSearchParams(window.location.search);const recoveryInUrl=hashParams.get("type")==="recovery"||queryParams.get("type")==="recovery";if(recoveryInUrl)showRecoveryForm();cloudClient.auth.onAuthStateChange((event,session)=>{if(event==="PASSWORD_RECOVERY"){showRecoveryForm()}else if(event==="SIGNED_OUT"){cloudUser=null;document.getElementById("cloudLogin").disabled=false;document.getElementById("cloudSignup").disabled=false;document.getElementById("cloudLogout").disabled=true;cloudMessage("Sesión cerrada. Los datos locales se conservan.")}else if(event==="SIGNED_IN"&&session&&(!cloudUser||cloudUser.id!==session.user.id)){if(recoveryWasRequested||recoveryInUrl)showRecoveryForm();else setTimeout(()=>loadCloudData(session.user),0)}});const {data:sessionData,error}=await cloudClient.auth.getSession();if(error){cloudMessage("No se pudo comprobar la sesión: "+error.message);return}if(recoveryWasRequested&&sessionData.session){showRecoveryForm()}else if(sessionData.session)await loadCloudData(sessionData.session.user);else if(!recoveryInUrl)cloudMessage("Inicia sesión para sincronizar tus datos en todos tus dispositivos.")}
 
@@ -543,22 +552,23 @@ document.getElementById("cloudForgot").onclick=()=>{if(!cloudClient){cloudMessag
 document.getElementById("sendResetEmail").onclick=async()=>{if(!cloudClient)return;const email=document.getElementById("resetEmail").value.trim();if(!email){cloudMessage("Escribe el correo de tu cuenta.");return}const redirectTo=window.location.origin+window.location.pathname;const {error}=await cloudClient.auth.resetPasswordForEmail(email,{redirectTo});if(error){cloudMessage("No se pudo enviar el enlace: "+error.message);return}localStorage.setItem("miPresupuestoRecoveryRequestedAt",String(Date.now()));resetRequestBox.hidden=true;cloudMessage("Revisa tu correo para cambiar la contraseña.")};
 document.getElementById("saveNewPassword").onclick=async()=>{if(!cloudClient)return;const password=document.getElementById("newCloudPassword").value,confirmPassword=document.getElementById("confirmCloudPassword").value;if(password.length<8||password!==confirmPassword){cloudMessage("Las contraseñas deben coincidir y tener al menos 8 caracteres.");return}const {error}=await cloudClient.auth.updateUser({password});if(error){cloudMessage("No se pudo cambiar la contraseña: "+error.message);return}resetPasswordBox.hidden=true;localStorage.removeItem("miPresupuestoRecoveryRequestedAt");cloudMessage("Contraseña actualizada. Inicia sesión con la nueva clave.");await cloudClient.auth.signOut()};
 
-const fixed=[['Gastos de la casa',65],['Ahorro conjunto con novia',40],['Plan celular',6],['Comida del gato',10],['Gasolina',20]];
-const defaults={'Salidas con mi novia':70,'Salidas con amigos':30,'Ropa':20,'Zapatos':15,'Golosinas/antojos':20,'Gastos varios':20};
+const defaults={};
 const initialCats=[];
+const initialCategoryTypes={}; // Almacena si es 'fijo' o 'variable'
+
 const $=x=>document.getElementById(x), money=n=>new Intl.NumberFormat('es-EC',{style:'currency',currency:'USD'}).format(Number(n)||0);
 const now=new Date(), monthNow=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'), dateNow=monthNow+'-'+String(now.getDate()).padStart(2,'0');
 
 $('month').value=monthNow;$('date').value=dateNow;$('extraDate').value=dateNow;
 
-let data={incomes:{},additionalIncomes:[],transactions:[],budgets:{...defaults},categories:[...initialCats],cardPurchases:[],cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0}}};
-try{let s=localStorage.getItem('miPresupuesto');if(s){let d=JSON.parse(s);data={...data,...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],budgets:{...defaults,...d.budgets},categories:Array.isArray(d.categories)?d.categories:[...initialCats],cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}}}}catch(e){}
+let data={incomes:{},additionalIncomes:[],transactions:[],budgets:{...defaults},categories:[...initialCats],categoryTypes:{...initialCategoryTypes},cardPurchases:[],cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0}}};
+try{let s=localStorage.getItem('miPresupuesto');if(s){let d=JSON.parse(s);data={...data,...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],budgets:{...defaults,...(d.budgets||{})},categories:Array.isArray(d.categories)?d.categories:[...initialCats],categoryTypes:{...(d.categoryTypes||{})},cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}}}}catch(e){}
 
 function save(){localStorage.setItem('miPresupuesto',JSON.stringify(data));scheduleCloudSave()}
 
 function renderCategories(){
  const select=$('cat'),current=select.value;select.innerHTML='';
- data.categories.forEach(c=>{let o=document.createElement('option');o.value=c;o.textContent=c;select.appendChild(o)});
+ data.categories.forEach(c=>{let o=document.createElement('option');o.value=c;o.textContent=c + (data.categoryTypes[c]==='fijo'?' (Fijo)':' (Variable)');select.appendChild(o)});
  if(data.categories.includes(current))select.value=current;
  const deleteSelect=$('deleteCatSelect'),deleteCurrent=deleteSelect.value;
  deleteSelect.innerHTML='';
@@ -567,8 +577,8 @@ function renderCategories(){
  if(data.categories.includes(deleteCurrent))deleteSelect.value=deleteCurrent;
  $('deleteCat').disabled=!deleteSelect.value;
  const editSelect=$('editBudgetCat'),editCurrent=editSelect.value;editSelect.innerHTML='';
- const editable=Object.keys(data.budgets).filter(c=>data.categories.includes(c)&&!fixed.some(x=>x[0]===c));
- if(!editable.length){const o=document.createElement('option');o.value='';o.textContent='No hay categorías variables';editSelect.appendChild(o)}
+ const editable=data.categories;
+ if(!editable.length){const o=document.createElement('option');o.value='';o.textContent='No hay categorías creadas';editSelect.appendChild(o)}
  editable.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;editSelect.appendChild(o)});
  if(editable.includes(editCurrent))editSelect.value=editCurrent;
  $('editBudgetLimit').value=editSelect.value!==''?(data.budgets[editSelect.value]??0):'';
@@ -576,9 +586,20 @@ function renderCategories(){
 
 $('deleteCatSelect').onchange=()=>{$('deleteCat').disabled=!$('deleteCatSelect').value};
 $('editBudgetCat').onchange=()=>{$('editBudgetLimit').value=$('editBudgetCat').value!==''?(data.budgets[$('editBudgetCat').value]??0):''};
-$('saveBudgetLimit').onclick=()=>{const c=$('editBudgetCat').value,v=Number($('editBudgetLimit').value);if(!c){alert('Selecciona una categoría variable.');return}if($('editBudgetLimit').value.trim()===''||!Number.isFinite(v)||v<0){alert('Ingresa un límite válido.');return}data.budgets[c]=v;save();render();$('editBudgetCat').value=c;$('editBudgetLimit').value=v;alert('Límite actualizado.')};
-$('deleteCat').onclick=()=>{const c=$('deleteCatSelect').value;if(!c)return;if(!confirm('¿Eliminar categoría "'+c+'"?'))return;data.categories=data.categories.filter(x=>x!==c);delete data.budgets[c];save();render()};
-$('addCat').onclick=()=>{const name=$('newCat').value.trim();if(!name)return;if(data.categories.some(c=>c.toLocaleLowerCase()===name.toLocaleLowerCase())){alert('Esa categoría ya existe.');return}const limit=Number($('newCatLimit').value||0);data.categories.push(name);data.budgets[name]=limit;$('newCat').value='';$('newCatLimit').value='';save();render()};
+$('saveBudgetLimit').onclick=()=>{const c=$('editBudgetCat').value,v=Number($('editBudgetLimit').value);if(!c){alert('Selecciona una categoría.');return}if($('editBudgetLimit').value.trim()===''||!Number.isFinite(v)||v<0){alert('Ingresa un límite válido.');return}data.budgets[c]=v;save();render();$('editBudgetCat').value=c;$('editBudgetLimit').value=v;alert('Límite actualizado.')};
+$('deleteCat').onclick=()=>{const c=$('deleteCatSelect').value;if(!c)return;if(!confirm('¿Eliminar categoría "'+c+'"?'))return;data.categories=data.categories.filter(x=>x!==c);delete data.budgets[c];delete data.categoryTypes[c];save();render()};
+$('addCat').onclick=()=>{
+ const name=$('newCat').value.trim();
+ if(!name)return;
+ if(data.categories.some(c=>c.toLocaleLowerCase()===name.toLocaleLowerCase())){alert('Esa categoría ya existe.');return}
+ const limit=Number($('newCatLimit').value||0);
+ const type=$('newCatType').value;
+ data.categories.push(name);
+ data.budgets[name]=limit;
+ data.categoryTypes[name]=type;
+ $('newCat').value='';$('newCatLimit').value='';
+ save();render();
+};
 
 function m(){return $('month').value||monthNow}
 function ts(){return data.transactions.filter(t=>t.date.startsWith(m()))}
@@ -641,12 +662,52 @@ function render(){
  $('mSpent').textContent=money(sp);
  $('mSave').textContent=money(sv);
  $('mLeft').textContent=money(left);
- $('mLeft').style.color=left<0?'#ef4444':'#10b981';
+ $('mLeft'].style.color=left<0?'#ef4444':'#10b981';
 
  $('summary').textContent=inc?`Después de gastos, ahorro y pagos a tarjetas, te quedan ${money(left)} sin asignar.`:'Ingresa tu depósito para ver el disponible.';
 
+ // Inteligencia y recomendaciones de ahorro automáticas
+ let totalFixedSpent = 0;
+ let totalFixedLimit = 0;
+ data.categories.forEach(cat => {
+   if(data.categoryTypes[cat] === 'fijo') {
+     totalFixedLimit += Number(data.budgets[cat] || 0);
+     totalFixedSpent += ts().filter(x=>x.kind==='gasto'&&x.cat===cat).reduce((s,x)=>s+x.amount,0);
+   }
+ });
+ let recommendedSavings = Math.max(0, inc - totalFixedLimit);
+ let adviceEl = $('aiAdvice');
+ if(adviceEl){
+   if(inc === 0){
+     adviceEl.textContent = '💡 Consejo: Ingresa tu sueldo o depósito de ASSA para calcular tu meta de ahorro óptima.';
+   } else if(sv >= recommendedSavings * 0.5){
+     adviceEl.textContent = `🎯 ¡Excelente ritmo! Tu meta de ahorro sugerida basada en tus ingresos menos gastos fijos es de ${money(recommendedSavings)}. ¡Vas por buen camino!`;
+   } else {
+     adviceEl.textContent = `💡 Sugerencia inteligente: Con tus ingresos actuales y cubriendo tus gastos fijos, podrías aspirar a ahorrar hasta ${money(recommendedSavings)} este mes. ¡Inténtalo!`;
+   }
+ }
+
  let budget=$('budget');budget.innerHTML='';
- let t=ts(), rows=[...fixed.filter(([name])=>data.categories.includes(name)).map(([name,limit])=>({name,limit,actual:t.filter(x=>x.kind==='gasto'&&x.cat===name).reduce((s,x)=>s+x.amount,0)})),{name:'Ahorro personal sugerido',limit:Math.min(60,Math.max(0,inc-fixed.filter(([name])=>data.categories.includes(name)).reduce((s,x)=>s+x[1],0))),actual:sv},...Object.entries(data.budgets).filter(([name])=>data.categories.includes(name)&&!fixed.some(x=>x[0]===name)).map(([name,limit])=>({name,limit,actual:t.filter(x=>x.kind==='gasto'&&x.cat===name).reduce((s,x)=>s+x.amount,0)}))];
+ let t=ts();
+ 
+ // Mostrar primero los gastos fijos, luego la meta de ahorro sugerida calculada, y luego los variables
+ let rows = [];
+ data.categories.forEach(cat => {
+   if(data.categoryTypes[cat] === 'fijo') {
+     let actual = t.filter(x=>x.kind==='gasto'&&x.cat===cat).reduce((s,x)=>s+x.amount,0);
+     rows.push({name: cat + ' (Fijo)', limit: data.budgets[cat]||0, actual});
+   }
+ });
+
+ rows.push({name: 'Ahorro personal sugerido (Meta)', limit: recommendedSavings, actual: sv});
+
+ data.categories.forEach(cat => {
+   if(data.categoryTypes[cat] !== 'fijo') {
+     let actual = t.filter(x=>x.kind==='gasto'&&x.cat===cat).reduce((s,x)=>s+x.amount,0);
+     rows.push({name: cat + ' (Variable)', limit: data.budgets[cat]||0, actual});
+   }
+ });
+
  rows.forEach(r=>{
   let line=document.createElement('div');line.className='line';
   let a=document.createElement('span');a.textContent=r.name;
@@ -786,10 +847,10 @@ $('add').onclick=()=>{
 };
 
 function download(content,name,type){let u=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
-$('csv').onclick=()=>{let lines=[['Fecha','Descripción','Categoría','Tipo','Valor'],...ts().map(t=>[t.date,t.desc,t.cat,t.kind,t.amount]),...extraIncomes().map(x=>[x.date,x.desc,'Ingresos adicionales','ingreso adicional',x.amount]),...(data.cardPurchases||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.desc,'Tarjeta de crédito','compra '+x.mode+' '+x.card,x.amount]),...(data.cardPayments||[]).filter(p=>p.date&&p.date.startsWith(m())).map(x=>[x.date,x.note||'Pago tarjeta','Pago tarjeta',x.card,x.amount])];download('\ufeff'+lines.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n'),'movimientos-'+m()+'.csv','text/csv;charset=utf-8')};
+$('csv').onclick=()=>{let lines=[['Fecha','Descripción','Categoría','Tipo','Valor'],...ts().map(t=>[t.date,t.desc,t.cat,t.kind,t.amount]),...extraIncomes().map(x=>[x.date,x.desc,'Ingresos adicionales','ingreso adicional',x.amount]),...(data.cardPurchases||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.desc,'Tarjeta de crédito','compra '+x.mode+' '+x.card,x.amount]),...(data.cardPayments||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.note||'Pago tarjeta','Pago tarjeta',x.card,x.amount])];download('\ufeff'+lines.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n'),'movimientos-'+m()+'.csv','text/csv;charset=utf-8')};
 $('backup').onclick=()=>download(JSON.stringify(data,null,2),'copia-mi-presupuesto.json','application/json');
 $('restoreBtn').onclick=()=>$('restore').click();
-$('restore').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!d.incomes||!Array.isArray(d.transactions)||!d.budgets)throw 0;data={...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}};save();render();renderCards();alert('Copia restaurada')}catch(err){alert('Archivo no válido')}e.target.value=''};
+$('restore').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!d.incomes||!Array.isArray(d.transactions)||!d.budgets)throw 0;data={...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],categoryTypes:{...(d.categoryTypes||{})},cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}};save();render();renderCards();alert('Copia restaurada')}catch(err){alert('Archivo no válido')}e.target.value=''};
 $('clear').onclick=()=>{if(confirm('¿Borrar los movimientos e ingresos del mes?')){data.transactions=data.transactions.filter(t=>!t.date.startsWith(m()));data.additionalIncomes=(data.additionalIncomes||[]).filter(x=>!x.date.startsWith(m()));data.cardPurchases=(data.cardPurchases||[]).filter(t=>!t.date.startsWith(m()));data.cardPayments=(data.cardPayments||[]).filter(t=>!t.date.startsWith(m()));save();render();renderCards()}};
 
 function showPage(name){
@@ -876,7 +937,7 @@ function loadCardSettings(){
 }
 loadCardSettings();renderCards();
 
-// --- AUTOCATEGORIZACIÓN (INDEPENDIENTE DE LAS CATEGORÍAS CREADAS) ---
+// --- AUTOCATEGORIZACIÓN ---
 const reglasCategorias = [
   { categoria: 'Ahorro con Mel', palabras: ['ahorro melany', 'ahorro novia', 'ahorro con mel'] },
   { categoria: 'Salidas con mi novia', palabras: ['melany', 'mel', 'solsito', 'cita', 'flores', 'regalo melany'] },
@@ -908,7 +969,16 @@ function autoAsignarCategoria() {
 
   if (esAhorroPersonal) {
     if (kindSelect) { kindSelect.value = 'ahorro'; kindSelect.dispatchEvent(new Event('change')); }
-    const targetOpt = Array.from(catSelect.options).find(opt => opt.value.toLowerCase() === 'ahorro personal');
+    let targetOpt = Array.from(catSelect.options).find(opt => opt.value.toLowerCase() === 'ahorro personal');
+    if (!targetOpt) {
+      if (!data.categories.includes('Ahorro personal')) {
+        data.categories.push('Ahorro personal');
+        data.categoryTypes['Ahorro personal'] = 'variable';
+        save();
+      }
+      renderCategories();
+      targetOpt = Array.from(catSelect.options).find(opt => opt.value.toLowerCase() === 'ahorro personal');
+    }
     if (targetOpt) { catSelect.value = targetOpt.value; catSelect.dispatchEvent(new Event('change')); }
     return;
   } else {
@@ -932,6 +1002,7 @@ function autoAsignarCategoria() {
     if (!data.categories.includes(categoriaSugerida)) {
       data.categories.push(categoriaSugerida);
       if(data.budgets[categoriaSugerida] === undefined) data.budgets[categoriaSugerida] = 20;
+      if(data.categoryTypes[categoriaSugerida] === undefined) data.categoryTypes[categoriaSugerida] = 'variable';
       save();
     }
     renderCategories();
@@ -973,6 +1044,7 @@ function autoAsignarCategoriaTarjeta() {
     if (!data.categories.includes(categoriaSugerida)) {
       data.categories.push(categoriaSugerida);
       if(data.budgets[categoriaSugerida] === undefined) data.budgets[categoriaSugerida] = 20;
+      if(data.categoryTypes[categoriaSugerida] === undefined) data.categoryTypes[categoriaSugerida] = 'variable';
       save();
     }
     renderCards();
