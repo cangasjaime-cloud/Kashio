@@ -992,12 +992,6 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){
   window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))
 }
 
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-    // Aquí puedes redirigir a una sección de éxito o mostrar un mensaje en pantalla
-    document.getElementById('mensaje').innerText = "¡Confirmación exitosa! Ya puedes iniciar sesión.";
-  }
-});
 </script>
 </body>
 </html>
