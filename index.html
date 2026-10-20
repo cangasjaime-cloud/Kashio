@@ -411,6 +411,8 @@ tr:last-child td{border-bottom:0}
       </div>
       <label for="ccOpening1">Deuda inicial Tarjeta 1 ($)</label>
       <input id="ccOpening1" type="number" min="0" step=".01" value="0">
+      <label for="ccDueAmount1">Pago total que debes cubrir este mes - Tarjeta 1 ($)</label>
+      <input id="ccDueAmount1" type="number" min="0" step=".01" placeholder="Ej. 140">
       <div class="row">
         <div><label for="ccCutoff1">Día corte</label><input id="ccCutoff1" type="number" min="1" max="28" value="13"></div>
         <div><label for="ccDue1">Día pago</label><input id="ccDue1" type="number" min="1" max="28" value="28"></div>
@@ -426,6 +428,8 @@ tr:last-child td{border-bottom:0}
       </div>
       <label for="ccOpening2">Deuda inicial Tarjeta 2 ($)</label>
       <input id="ccOpening2" type="number" min="0" step=".01" value="0">
+      <label for="ccDueAmount2">Pago total que debes cubrir este mes - Tarjeta 2 ($)</label>
+      <input id="ccDueAmount2" type="number" min="0" step=".01" placeholder="Ej. 140">
       <button id="ccSaveSettings">Guardar configuración</button>
     </section>
   </section>
@@ -561,8 +565,8 @@ const now=new Date(), monthNow=now.getFullYear()+'-'+String(now.getMonth()+1).pa
 
 $('month').value=monthNow;$('date').value=dateNow;$('extraDate').value=dateNow;
 
-let data={incomes:{},additionalIncomes:[],transactions:[],budgets:{...defaults},categories:[...initialCats],categoryTypes:{...initialCategoryTypes},cardPurchases:[],cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0}}};
-try{let s=localStorage.getItem('miPresupuesto');if(s){let d=JSON.parse(s);data={...data,...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],budgets:{...defaults,...(d.budgets||{})},categories:Array.isArray(d.categories)?d.categories:[...initialCats],categoryTypes:{...(d.categoryTypes||{})},cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}}}}catch(e){}
+let data={incomes:{},additionalIncomes:[],transactions:[],budgets:{...defaults},categories:[...initialCats],categoryTypes:{...initialCategoryTypes},cardPurchases:[],cardPayments:[],cardDues:{},cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0}}};
+try{let s=localStorage.getItem('miPresupuesto');if(s){let d=JSON.parse(s);data={...data,...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],budgets:{...defaults,...(d.budgets||{})},categories:Array.isArray(d.categories)?d.categories:[...initialCats],categoryTypes:{...(d.categoryTypes||{})},cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cardDues:{...(d.cardDues||{})},cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}}}}catch(e){}
 
 function save(){localStorage.setItem('miPresupuesto',JSON.stringify(data));scheduleCloudSave()}
 
@@ -606,12 +610,15 @@ function ts(){return data.transactions.filter(t=>t.date.startsWith(m()))}
 function extraIncomes(){if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];return data.additionalIncomes.filter(x=>x.date&&x.date.startsWith(m()))}
 function extraIncomeTotal(){return extraIncomes().reduce((s,x)=>s+(Number(x.amount)||0),0)}
 function cardPaymentsThisMonth(){return (data.cardPayments||[]).filter(p=>p.date&&p.date.startsWith(m())).reduce((s,p)=>s+(Number(p.amount)||0),0)}
+function cardDueAmountThisMonth(id){return Math.max(0,Number((data.cardDues||{})[m()+'_'+id])||0)}
+function cardDuesThisMonth(){return ['card1','card2'].reduce((s,id)=>s+cardDueAmountThisMonth(id),0)}
+function pendingCardDueThisMonth(){return ['card1','card2'].reduce((s,id)=>{const paid=(data.cardPayments||[]).filter(p=>p.card===id&&p.date&&p.date.startsWith(m())).reduce((a,p)=>a+(Number(p.amount)||0),0);return s+Math.max(0,cardDueAmountThisMonth(id)-paid)},0)}
 function spent(){
  // En el resumen principal contamos salidas reales de dinero: gastos desde cuenta/efectivo
  // y pagos realizados a tarjetas. Las compras con tarjeta siguen en historial y presupuesto,
  // pero no se suman aquí antes de pagarlas para evitar contar dos veces la misma compra.
  const normalSpent = ts().filter(t=>t.kind==='gasto').reduce((s,t)=>s+(Number(t.amount)||0),0);
- return normalSpent + cardPaymentsThisMonth();
+ return normalSpent + cardPaymentsThisMonth() + pendingCardDueThisMonth();
 }
 function sav(){return ts().filter(t=>t.kind==='ahorro').reduce((s,t)=>s+t.amount,0)}
 
@@ -675,15 +682,15 @@ function render(){
    }
  });
  // El pago a tarjeta es una obligación mensual fija, aunque el importe cambie.
- let recommendedSavings = Math.max(0, inc - totalFixedLimit - cardPaymentsThisMonth());
+ let recommendedSavings = Math.max(0, inc - totalFixedLimit - cardDuesThisMonth());
  let adviceEl = $('aiAdvice');
  if(adviceEl){
    if(inc === 0){
      adviceEl.textContent = '💡 Consejo: Ingresa tu sueldo o depósito para calcular tu meta de ahorro óptima.';
    } else if(sv >= recommendedSavings * 0.5){
-     adviceEl.textContent = `🎯 ¡Excelente ritmo! Tu meta de ahorro sugerida basada en tus ingresos, gastos fijos y pagos de tarjeta registrados es de ${money(recommendedSavings)}. ¡Vas por buen camino!`;
+     adviceEl.textContent = `🎯 ¡Excelente ritmo! Tu meta de ahorro sugerida basada en tus ingresos, gastos fijos y cuotas de tarjeta previstas es de ${money(recommendedSavings)}. ¡Vas por buen camino!`;
    } else {
-     adviceEl.textContent = `💡 Sugerencia inteligente: Con tus ingresos actuales, cubriendo tus gastos fijos y los pagos de tarjeta registrados, podrías aspirar a ahorrar hasta ${money(recommendedSavings)} este mes. ¡Inténtalo!`;
+     adviceEl.textContent = `💡 Sugerencia inteligente: Con tus ingresos actuales, cubriendo tus gastos fijos y las cuotas de tarjeta previstas, podrías aspirar a ahorrar hasta ${money(recommendedSavings)} este mes. ¡Inténtalo!`;
    }
  }
 
@@ -833,7 +840,7 @@ function render(){
 if($('movSearch')) $('movSearch').oninput=render;
 if($('movFilterOrigin')) $('movFilterOrigin').onchange=render;
 
-$('month').onchange=render;
+$('month').onchange=()=>{loadCardSettings();render();renderCards()};
 $('saveIncome').onclick=()=>{let n=Number($('income').value);if($('income').value.trim()===''||!Number.isFinite(n)||n<0){alert('Ingresa un ingreso válido');return}data.incomes[m()]=n;save();render()};
 $('addExtraIncome').onclick=()=>{const date=$('extraDate').value,desc=$('extraDesc').value.trim(),raw=$('extraAmount').value,amount=Number(raw);if(!date||!desc||raw.trim()===''||!Number.isFinite(amount)||amount<=0){alert('Completa los campos.');return}if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];data.additionalIncomes.push({id:Date.now()+Math.random(),date,desc,amount});save();$('extraDesc').value='';$('extraAmount').value='';render()};
 
@@ -922,17 +929,19 @@ $('ccAddPayment').onclick=()=>{
 
 $('ccSaveSettings').onclick=()=>{
  const read=(id,min,max)=>{const v=Number($(id).value);if($(id).value.trim()===''||!Number.isFinite(v)||v<min||v>max)return null;return v};
- const l1=read('ccLimit1',0,100000000),c1=read('ccCutoff1',1,28),d1=read('ccDue1',1,28),l2=read('ccLimit2',0,100000000),c2=read('ccCutoff2',1,28),d2=read('ccDue2',1,28),o1=read('ccOpening1',0,100000000),o2=read('ccOpening2',0,100000000),n1=$('ccName1').value.trim(),n2=$('ccName2').value.trim();
- if([l1,c1,d1,l2,c2,d2,o1,o2].some(x=>x===null)||!n1||!n2){alert('Revisa los datos de las tarjetas.');return}
+ const l1=read('ccLimit1',0,100000000),c1=read('ccCutoff1',1,28),d1=read('ccDue1',1,28),l2=read('ccLimit2',0,100000000),c2=read('ccCutoff2',1,28),d2=read('ccDue2',1,28),o1=read('ccOpening1',0,100000000),o2=read('ccOpening2',0,100000000),due1=Number($('ccDueAmount1').value||0),due2=Number($('ccDueAmount2').value||0),n1=$('ccName1').value.trim(),n2=$('ccName2').value.trim();
+ if([l1,c1,d1,l2,c2,d2,o1,o2].some(x=>x===null)||!Number.isFinite(due1)||due1<0||!Number.isFinite(due2)||due2<0||!n1||!n2){alert('Revisa los datos de las tarjetas.');return}
  data.cards.card1={...cardObj('card1'),name:n1,limit:l1,cutoff:c1,due:d1,openingBalance:o1};
  data.cards.card2={...cardObj('card2'),name:n2,limit:l2,cutoff:c2,due:d2,openingBalance:o2};
- save();renderCards();alert('Configuración guardada.');
+ if(!data.cardDues)data.cardDues={};data.cardDues[m()+'_card1']=due1;data.cardDues[m()+'_card2']=due2;
+ save();render();renderCards();alert('Configuración guardada.');
 };
 
 function loadCardSettings(){
  const c1=cardObj('card1'),c2=cardObj('card2');
  $('ccName1').value=c1.name;$('ccLimit1').value=c1.limit;$('ccCutoff1').value=c1.cutoff;$('ccDue1').value=c1.due;$('ccOpening1').value=c1.openingBalance;
  $('ccName2').value=c2.name;$('ccLimit2').value=c2.limit;$('ccCutoff2').value=c2.cutoff;$('ccDue2').value=c2.due;$('ccOpening2').value=c2.openingBalance;
+ $('ccDueAmount1').value=(data.cardDues||{})[m()+'_card1']??'';$('ccDueAmount2').value=(data.cardDues||{})[m()+'_card2']??'';
 }
 loadCardSettings();renderCards();
 
@@ -942,9 +951,8 @@ const reglasCategorias = [
   { categoria: 'Salidas con Mel', palabras: ['melany', 'mel', 'solsito', 'cita', 'flores', 'regalo melany'] },
   { categoria: 'Gasolina', palabras: ['gasolina', 'combustible', 'gasolinera', 'extra', 'super', 'disel', 'diesel'] },
   { categoria: 'Comida Gato', palabras: ['gato', 'gatito', 'comida gato', 'arena', 'cat', 'nucita', 'veterinario'] },
-  { categoria: 'Gastos de la casa', palabras: ['arriendo', 'alquiler', 'luz', 'agua', 'almacen el perno', 'el perno', 'supermercado', 'aki', 'gran aki'] },
-  { categoria: 'Internet', palabras: ['internet'] },
-  { categoria: 'Celular', palabras: ['celular', 'plan', 'saldo', 'claro', 'movistar', 'cnt', 'tuenti','recarga'] },
+  { categoria: 'Gastos de la casa', palabras: ['arriendo', 'alquiler', 'luz', 'agua', 'internet', 'almacen el perno', 'el perno', 'supermercado', 'aki', 'gran aki'] },
+  { categoria: 'Celular', palabras: ['celular', 'plan', 'saldo', 'claro', 'movistar', 'cnt', 'tuenti'] },
   { categoria: 'Salidas con amigos', palabras: ['amigos', 'reunion', 'parrillada', 'cerveza'] },
   { categoria: 'Ropa', palabras: ['ropa', 'camisa', 'pantalon', 'pantalón', 'chaqueta', 'buzo','zapatos', 'zapatillas', 'calzado', 'botas'] },
   { categoria: 'Golosinas/antojos', palabras: ['snack', 'antojo', 'dulce', 'café', 'chocolate', 'salchipapa'] },
