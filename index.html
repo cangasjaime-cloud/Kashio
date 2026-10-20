@@ -539,7 +539,7 @@ const cloudConfigured=()=>Boolean(window.MI_SUPABASE_URL && window.MI_SUPABASE_A
 function cloudMessage(msg){const el=document.getElementById("cloudStatus");if(el)el.textContent=msg}
 function scheduleCloudSave(){if(!cloudClient||!cloudUser||cloudLoading)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(async()=>{try{const {error}=await cloudClient.from("budget_data").upsert({user_id:cloudUser.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(error)throw error;cloudMessage("Sesión activa: cambios guardados en la nube.")}catch(e){cloudMessage("No se pudo sincronizar. Revisa la conexión; tus cambios siguen guardados en este dispositivo.")}},700)}
 
-async function loadCloudData(user){cloudUser=user;cloudLoading=true;try{const {data:row,error}=await cloudClient.from("budget_data").select("data").eq("user_id",user.id).maybeSingle();if(error)throw error;if(row&&row.data){data={...data,...row.data,additionalIncomes:Array.isArray(row.data.additionalIncomes)?row.data.additionalIncomes:[],budgets:{...defaults,...(row.data.budgets||{})},categories:Array.isArray(row.data.categories)?row.data.categories:[],categoryTypes:{...(row.data.categoryTypes||{})}};localStorage.setItem("miPresupuesto",JSON.stringify(data));render();cloudMessage("Sesión activa: tus datos se cargaron desde la nube.")}else{const {error:upErr}=await cloudClient.from("budget_data").upsert({user_id:user.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(upErr)throw upErr;cloudMessage("Cuenta conectada. Los datos locales se guardaron en la nube.")}document.getElementById("cloudEmail").value=user.email||"";document.getElementById("cloudPassword").value="";document.getElementById("cloudLogin").disabled=true;document.getElementById("cloudSignup").disabled=true;document.getElementById("cloudLogout").disabled=false;}catch(e){cloudMessage("Error al cargar o guardar en la nube: "+(e.message||"verifica políticas RLS"));cloudUser=null;}finally{cloudLoading=false}}
+async function loadCloudData(user){cloudUser=user;cloudLoading=true;try{const {data:row,error}=await cloudClient.from("budget_data").select("data").eq("user_id",user.id).maybeSingle();if(error)throw error;if(row&&row.data){data={...data,...row.data,additionalIncomes:Array.isArray(row.data.additionalIncomes)?row.data.additionalIncomes:[],budgets:{...(row.data.budgets||{})},categories:Array.isArray(row.data.categories)?row.data.categories:[],categoryTypes:{...(row.data.categoryTypes||{})}};localStorage.setItem("miPresupuesto",JSON.stringify(data));render();cloudMessage("Sesión activa: tus datos se cargaron desde la nube.")}else{const {error:upErr}=await cloudClient.from("budget_data").upsert({user_id:user.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(upErr)throw upErr;cloudMessage("Cuenta conectada. Los datos locales se guardaron en la nube.")}document.getElementById("cloudEmail").value=user.email||"";document.getElementById("cloudPassword").value="";document.getElementById("cloudLogin").disabled=true;document.getElementById("cloudSignup").disabled=true;document.getElementById("cloudLogout").disabled=false;}catch(e){cloudMessage("Error al cargar o guardar en la nube: "+(e.message||"verifica políticas RLS"));cloudUser=null;}finally{cloudLoading=false}}
 
 async function initCloud(){if(!cloudConfigured()||!window.supabase){cloudMessage("Falta configurar Supabase. Los datos se guardan localmente.");return}cloudClient=window.supabase.createClient(window.MI_SUPABASE_URL,window.MI_SUPABASE_ANON_KEY);const showRecoveryForm=()=>{resetRequestBox.hidden=true;resetPasswordBox.hidden=false;cloudMessage("Enlace de recuperación detectado. Escribe tu nueva contraseña.")};const recoveryRequestedAt=Number(localStorage.getItem("miPresupuestoRecoveryRequestedAt")||0);const recoveryWasRequested=Date.now()-recoveryRequestedAt<30*60*1000;const hashParams=new URLSearchParams(window.location.hash.slice(1));const queryParams=new URLSearchParams(window.location.search);const recoveryInUrl=hashParams.get("type")==="recovery"||queryParams.get("type")==="recovery";if(recoveryInUrl)showRecoveryForm();cloudClient.auth.onAuthStateChange((event,session)=>{if(event==="PASSWORD_RECOVERY"){showRecoveryForm()}else if(event==="SIGNED_OUT"){cloudUser=null;document.getElementById("cloudLogin").disabled=false;document.getElementById("cloudSignup").disabled=false;document.getElementById("cloudLogout").disabled=true;cloudMessage("Sesión cerrada. Los datos locales se conservan.")}else if(event==="SIGNED_IN"&&session&&(!cloudUser||cloudUser.id!==session.user.id)){if(recoveryWasRequested||recoveryInUrl)showRecoveryForm();else setTimeout(()=>loadCloudData(session.user),0)}});const {data:sessionData,error}=await cloudClient.auth.getSession();if(error){cloudMessage("No se pudo comprobar la sesión: "+error.message);return}if(recoveryWasRequested&&sessionData.session){showRecoveryForm()}else if(sessionData.session)await loadCloudData(sessionData.session.user);else if(!recoveryInUrl)cloudMessage("Inicia sesión para sincronizar tus datos en todos tus dispositivos.")}
 
@@ -554,7 +554,7 @@ document.getElementById("saveNewPassword").onclick=async()=>{if(!cloudClient)ret
 
 const defaults={};
 const initialCats=[];
-const initialCategoryTypes={}; // Almacena si es 'fijo' o 'variable'
+const initialCategoryTypes={};
 
 const $=x=>document.getElementById(x), money=n=>new Intl.NumberFormat('es-EC',{style:'currency',currency:'USD'}).format(Number(n)||0);
 const now=new Date(), monthNow=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0'), dateNow=monthNow+'-'+String(now.getDate()).padStart(2,'0');
@@ -662,17 +662,14 @@ function render(){
  $('mSpent').textContent=money(sp);
  $('mSave').textContent=money(sv);
  $('mLeft').textContent=money(left);
- $('mLeft'].style.color=left<0?'#ef4444':'#10b981';
+ $('mLeft').style.color=left<0?'#ef4444':'#10b981';
 
  $('summary').textContent=inc?`Después de gastos, ahorro y pagos a tarjetas, te quedan ${money(left)} sin asignar.`:'Ingresa tu depósito para ver el disponible.';
 
- // Inteligencia y recomendaciones de ahorro automáticas
- let totalFixedSpent = 0;
  let totalFixedLimit = 0;
  data.categories.forEach(cat => {
    if(data.categoryTypes[cat] === 'fijo') {
      totalFixedLimit += Number(data.budgets[cat] || 0);
-     totalFixedSpent += ts().filter(x=>x.kind==='gasto'&&x.cat===cat).reduce((s,x)=>s+x.amount,0);
    }
  });
  let recommendedSavings = Math.max(0, inc - totalFixedLimit);
@@ -690,7 +687,6 @@ function render(){
  let budget=$('budget');budget.innerHTML='';
  let t=ts();
  
- // Mostrar primero los gastos fijos, luego la meta de ahorro sugerida calculada, y luego los variables
  let rows = [];
  data.categories.forEach(cat => {
    if(data.categoryTypes[cat] === 'fijo') {
