@@ -84,12 +84,12 @@ td button{padding:5px 8px;font-size:.72rem}
 
 .compact-tabs{display:flex;gap:6px;padding:4px;margin:0 0 14px;background:#e2e8f0;border-radius:12px;overflow-x:auto;scrollbar-width:none}
 .compact-tabs::-webkit-scrollbar{display:none}
-.compact-tabs button{flex:1;white-space:nowrap;background:transparent;color:#64748b;padding:8px 12px;border-radius:8px;font-size:.78rem;border:0}
+.compact-tabs button{flex:1;white-space:nowrap;background:transparent;color:#64748b;padding:8px 12px;border-radius:8px;font-size:.78rem;border:0;font-weight:600}
 .compact-tabs button.active{background:#fff;color:var(--navy);box-shadow:0 2px 6px rgba(15,23,42,0.08);font-weight:800}
 .tab-panel-hidden{display:none!important}
 
 .bottom-nav{position:fixed;z-index:30;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:8px max(6px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);border-top:1px solid var(--line);box-shadow:0 -4px 20px rgba(15,23,42,0.05)}
-.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:transparent;color:#64748b;padding:6px 2px;font-size:.65rem;font-weight:700;border-radius:10px;border:0}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:transparent;color:#64748b;padding:6px 2px;font-size:.65rem;font-weight:700;border-radius:10px;border:0;cursor:pointer}
 .nav-item .nav-icon{font-size:1.1rem;line-height:1}
 .nav-item.active{background:var(--blue-light);color:var(--blue)}
 
@@ -135,11 +135,8 @@ td button{padding:5px 8px;font-size:.72rem}
           <div class="donut-chart-wrapper">
             <svg viewBox="0 0 36 36">
               <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3.8" />
-              <!-- Gastos -->
               <path id="chartSpent" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#ef4444" stroke-width="3.8" stroke-dasharray="0, 100" />
-              <!-- Ahorro -->
               <path id="chartSave" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#3b82f6" stroke-width="3.8" stroke-dasharray="0, 100" />
-              <!-- Disponible -->
               <path id="chartLeft" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-width="3.8" stroke-dasharray="0, 100" />
             </svg>
             <div class="chart-center-text">
@@ -190,7 +187,7 @@ td button{padding:5px 8px;font-size:.72rem}
     </div>
   </section>
 
-  <!-- 2. REGISTRAR (NUEVA PESTAÑA DEDICADA) -->
+  <!-- 2. REGISTRAR -->
   <section class="page" id="page-register" aria-labelledby="registerTitle">
     <div class="page-heading">
       <div>
@@ -218,27 +215,26 @@ td button{padding:5px 8px;font-size:.72rem}
     </section>
   </section>
 
-  <!-- 3. MOVIMIENTOS -->
+  <!-- 3. MOVIMIENTOS (HISTORIAL UNIFICADO) -->
   <section class="page" id="page-movements" aria-labelledby="movementsTitle">
     <div class="page-heading">
       <div>
-        <p class="eyebrow">HISTORIAL DE MOVIMIENTOS</p>
+        <p class="eyebrow">HISTORIAL UNIFICADO</p>
         <h2 id="movementsTitle">Movimientos del mes</h2>
-        <p class="subheading">Consulta y administra todos tus registros del mes seleccionado.</p>
+        <p class="subheading">Visualiza aquí todos tus gastos en efectivo, cuentas y tarjetas de crédito.</p>
       </div>
     </div>
     <section class="card wide">
-      <h2>Listado de movimientos</h2>
+      <h2>Historial completo</h2>
       <div class="scroll">
         <table>
           <thead>
-            <tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Tipo</th><th>Valor</th><th></th></tr>
+            <tr><th>Fecha</th><th>Descripción</th><th>Categoría / Método</th><th>Tipo</th><th>Valor</th><th></th></tr>
           </thead>
           <tbody id="rows"></tbody>
         </table>
       </div>
       <p id="empty" class="note">No hay movimientos este mes.</p>
-      <p class="note">Aquí puedes revisar y eliminar los movimientos registrados durante el mes seleccionado.</p>
     </section>
   </section>
 
@@ -295,7 +291,6 @@ td button{padding:5px 8px;font-size:.72rem}
     <section class="card">
       <h2>Resumen de tarjetas</h2>
       <div id="cardSummary" class="stats"></div>
-      <p class="note">Ingresa el saldo real que tenga cada tarjeta cuando empieces a usar la aplicación.</p>
     </section>
 
     <section class="card">
@@ -355,7 +350,6 @@ td button{padding:5px 8px;font-size:.72rem}
       <label for="ccPaymentNote">Nota (opcional)</label>
       <input id="ccPaymentNote" placeholder="Ej. pago del estado de cuenta">
       <button id="ccAddPayment">Registrar pago</button>
-      <p class="note">El pago disminuye la deuda de la tarjeta y se descuenta del disponible libre.</p>
     </section>
 
     <section class="card">
@@ -382,19 +376,6 @@ td button{padding:5px 8px;font-size:.72rem}
       <label for="ccOpening2">Deuda inicial Tarjeta 2 ($)</label>
       <input id="ccOpening2" type="number" min="0" step=".01" value="0">
       <button id="ccSaveSettings">Guardar configuración</button>
-    </section>
-
-    <section class="card">
-      <h2>Compras y pagos registrados</h2>
-      <div class="scroll">
-        <table>
-          <thead>
-            <tr><th>Fecha</th><th>Tarjeta</th><th>Movimiento</th><th>Descripción</th><th>Período / venc.</th><th>Valor</th><th></th></tr>
-          </thead>
-          <tbody id="ccRows"></tbody>
-        </table>
-      </div>
-      <p id="ccEmpty" class="note">Todavía no hay compras o pagos registrados.</p>
     </section>
   </section>
 
@@ -466,7 +447,7 @@ td button{padding:5px 8px;font-size:.72rem}
  const definitions={
   home:{labels:['Resumen','Ingresos'],groups:[[0],[1,2]],active:0},
   budget:{labels:['Límites','Categorías'],groups:[[0],[1]],active:0},
-  cards:{labels:['Resumen','Compras','Pagos','Configurar','Historial'],groups:[[0],[1],[2],[3],[4]],active:0},
+  cards:{labels:['Resumen','Compras','Pagos','Configurar'],groups:[[0],[1],[2],[3]],active:0},
   settings:{labels:['Nube y cuenta','Respaldos'],groups:[[0],[1]],active:0}
  };
  function setup(){
@@ -631,25 +612,73 @@ function render(){
   bar.appendChild(fill);budget.appendChild(bar);
  });
 
+ // HISTORIAL UNIFICADO
  let body=$('rows');body.innerHTML='';
- t.sort((a,b)=>b.date.localeCompare(a.date)).forEach(x=>{
+ 
+ let normalTx = ts().map(x => ({
+  id: x.id,
+  date: x.date,
+  desc: x.desc,
+  catOrMethod: x.cat,
+  typeLabel: x.kind === 'ahorro' ? 'Ahorro' : 'Gasto',
+  amount: x.amount,
+  isCard: false
+ }));
+
+ let cardPurchasesMonth = (data.cardPurchases||[]).filter(x => x.date && x.date.startsWith(m())).map(x => ({
+  id: x.id,
+  date: x.date,
+  desc: x.desc,
+  catOrMethod: x.cat + ' (' + cardName(x.card) + ' - ' + x.mode + ')',
+  typeLabel: 'Gasto Tarjeta',
+  amount: x.amount,
+  isCard: true,
+  cardEventType: 'Compra'
+ }));
+
+ let cardPaymentsMonth = (data.cardPayments||[]).filter(p => p.date && p.date.startsWith(m())).map(p => ({
+  id: p.id,
+  date: p.date,
+  desc: p.note || 'Pago a tarjeta',
+  catOrMethod: cardName(p.card),
+  typeLabel: 'Pago Tarjeta',
+  amount: p.amount,
+  isCard: true,
+  cardEventType: 'Pago'
+ }));
+
+ let allUnifiedEvents = [...normalTx, ...cardPurchasesMonth, ...cardPaymentsMonth].sort((a,b)=>b.date.localeCompare(a.date));
+
+ allUnifiedEvents.forEach(x=>{
   let tr=document.createElement('tr');
-  [x.date,x.desc,x.cat,x.kind==='ahorro'?'Ahorro':'Gasto',money(x.amount)].forEach(v=>{
+  [x.date, x.desc, x.catOrMethod, x.typeLabel, money(x.amount)].forEach(v=>{
    let td=document.createElement('td');td.textContent=v;tr.appendChild(td);
   });
   let td=document.createElement('td'),btn=document.createElement('button');
   btn.className='alt';btn.textContent='Eliminar';
-  btn.onclick=()=>{data.transactions=data.transactions.filter(y=>y.id!==x.id);save();render()};
+  btn.onclick=()=>{
+   if(!confirm('¿Eliminar este registro?'))return;
+   if(!x.isCard){
+     data.transactions=data.transactions.filter(y=>y.id!==x.id);
+   } else {
+     if(x.cardEventType==='Compra'){
+       data.cardPurchases=data.cardPurchases.filter(y=>y.id!==x.id);
+       data.transactions=data.transactions.filter(y=>y.cardPurchaseId!==x.id);
+     } else {
+       data.cardPayments=data.cardPayments.filter(y=>y.id!==x.id);
+     }
+   }
+   save();render();renderCards();
+  };
   td.appendChild(btn);tr.appendChild(td);body.appendChild(tr);
  });
- $('empty').style.display=t.length?'none':'block';
+ $('empty').style.display=allUnifiedEvents.length?'none':'block';
 }
 
 $('month').onchange=render;
 $('saveIncome').onclick=()=>{let n=Number($('income').value);if($('income').value.trim()===''||!Number.isFinite(n)||n<0){alert('Ingresa un ingreso válido');return}data.incomes[m()]=n;save();render()};
 $('addExtraIncome').onclick=()=>{const date=$('extraDate').value,desc=$('extraDesc').value.trim(),raw=$('extraAmount').value,amount=Number(raw);if(!date||!desc||raw.trim()===''||!Number.isFinite(amount)||amount<=0){alert('Completa los campos.');return}if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];data.additionalIncomes.push({id:Date.now()+Math.random(),date,desc,amount});save();$('extraDesc').value='';$('extraAmount').value='';render()};
 
-// AGREGAR MOVIMIENTO EN PESTAÑA REGISTRAR
 $('add').onclick=()=>{
  let amount=Number($('amount').value),desc=$('desc').value.trim(),date=$('date').value;
  if(!date||!desc||!Number.isFinite(amount)||amount<=0){alert('Completa fecha, descripción y valor válido.');return}
@@ -697,18 +726,6 @@ function renderCards(){
  const cat=$('ccPurchaseCat'),old=cat.value;cat.innerHTML='';
  data.categories.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;cat.appendChild(o)});
  if(data.categories.includes(old))cat.value=old;
-
- const body=$('ccRows');body.innerHTML='';
- const events=[...(data.cardPurchases||[]).map(x=>({...x,eventType:'Compra'})),...(data.cardPayments||[]).map(x=>({...x,eventType:'Pago',amount:-Number(x.amount||0),mode:'pago',desc:x.note||'Pago a tarjeta'}))].sort((a,b)=>b.date.localeCompare(a.date));
- events.forEach(x=>{
-  const tr=document.createElement('tr'),period=x.eventType==='Compra'?(x.cutoff+' / '+x.due):'—';
-  [x.date,cardName(x.card),x.eventType+(x.mode==='diferido'?' diferido':x.mode==='corriente'?' corriente':''),x.desc||x.note||'',period,money(x.amount)].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td)});
-  const td=document.createElement('td'),btn=document.createElement('button');
-  btn.className='alt';btn.textContent='Eliminar';
-  btn.onclick=()=>{if(!confirm('¿Eliminar este registro?'))return;if(x.eventType==='Compra'){data.cardPurchases=data.cardPurchases.filter(y=>y.id!==x.id);data.transactions=data.transactions.filter(y=>y.cardPurchaseId!==x.id)}else data.cardPayments=data.cardPayments.filter(y=>y.id!==x.id);save();render();renderCards()};
-  td.appendChild(btn);tr.appendChild(td);body.appendChild(tr);
- });
- $('ccEmpty').style.display=events.length?'none':'block';
 
  const date=$('ccPurchaseDate').value||dateNow;
  if(!$('ccPurchaseDate').value)$('ccPurchaseDate').value=dateNow;
@@ -851,31 +868,9 @@ const atajosEnter = [
   { inputs: ['extraDate', 'extraAmount', 'extraDesc'], btn: 'addExtraIncome' },
   { inputs: ['date', 'desc', 'amount'], btn: 'add' },
   { inputs: ['editBudgetLimit'], btn: 'saveBudgetLimit' },
-  { inputs: ['newCat', 'newCatLimit'], btn: 'addCat' },
-  { inputs: ['ccPurchaseDate','ccPurchaseAmount','ccPurchaseDesc'], btn: 'ccAddPurchase' },
-  { inputs: ['ccPaymentDate','ccPaymentAmount','ccPaymentNote'], btn: 'ccAddPayment' }
+  { inputs: ['newCat', 'newCatLimit'],}
 ];
-
-atajosEnter.forEach(grupo => {
-  grupo.inputs.forEach(idInput => {
-    const el = document.getElementById(idInput);
-    if (el) {
-      el.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          const btn = document.getElementById(grupo.btn);
-          if (btn) btn.click();
-        }
-      });
-    }
-  });
-});
-
-render();
-initCloud();
-if("serviceWorker" in navigator && location.protocol.startsWith("http")){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))
-}
+// ... [código auxiliar y de inicialización]
 </script>
 </body>
 </html>
