@@ -748,7 +748,6 @@ $('ccAddPurchase').onclick=()=>{
  const cyc=cycleFor(date,card);
  const purchase={id:Date.now()+Math.random(),date,desc,amount,card,mode,cat,installments,interest,cutoff:cyc.cutoff,due:cyc.due};
  data.cardPurchases.push(purchase);
- data.transactions.push({id:purchase.id,date,desc:desc+' ('+cardName(card)+')',cat,amount,kind:'gasto',paymentMethod:card,creditMode:mode,cardPurchaseId:purchase.id});
  save();$('ccPurchaseDesc').value='';$('ccPurchaseAmount').value='';render();renderCards();
  alert('Compra con tarjeta registrada.');
 };
