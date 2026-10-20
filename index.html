@@ -802,4 +802,195 @@ document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=
 // --- MÓDULO DE TARJETAS DE CRÉDITO ---
 function cardObj(id){return data.cards[id]||{name:id==='card1'?'Tarjeta principal':'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0}}
 function cardName(id){return cardObj(id).name|| (id==='card1'?'Tarjeta principal':'Segunda tarjeta')}
-function cycleFor(date,id){const c=cardObj(id),day=Number(c.cutoff)||13,parts=date.split('-').map(Number);let y=parts[0],mo=
+function cycleFor(date,id){const c=cardObj(id),day=Number(c.cutoff)||13,parts=date.split('-').map(Number);let y=parts[0],mo=parts[1],dd=parts[2];if(dd>day){mo++;if(mo>12){mo=1;y++}}const cutoffDate=y+'-'+String(mo).padStart(2,'0')+'-'+String(day).padStart(2,'0');let dueY=y,dueM=mo;if(Number(c.due)<=day && dd>day){dueM++;if(dueM>12){dueM=1;dueY++}}const dueDate=dueY+'-'+String(dueM).padStart(2,'0')+'-'+String(Number(c.due)||28).padStart(2,'0');return {cutoff:cutoffDate,due:dueDate}}
+function cardBalance(id){const c=cardObj(id),buys=(data.cardPurchases||[]).filter(x=>x.card===id).reduce((s,x)=>s+(Number(x.amount)||0),0),pays=(data.cardPayments||[]).filter(x=>x.card===id).reduce((s,x)=>s+(Number(x.amount)||0),0);return Math.max(0,(Number(c.openingBalance)||0)+buys-pays)}
+
+function refreshCardSelects(){[['ccPurchaseCard','card1','card2'],['ccPaymentCard','card1','card2']].forEach(([selectId,...ids])=>{const sel=$(selectId);if(!sel)return;const old=sel.value;sel.innerHTML='';ids.forEach(id=>{const opt=document.createElement('option');opt.value=id;opt.textContent=cardName(id);sel.appendChild(opt)});if(ids.includes(old))sel.value=old;});}
+
+function renderCards(){
+ if(!document.getElementById('cardSummary'))return;refreshCardSelects();
+ const summary=$('cardSummary');summary.innerHTML='';
+ ['card1','card2'].forEach(id=>{
+  const c=cardObj(id),balance=cardBalance(id),available=Math.max(0,(Number(c.limit)||0)-balance);
+  const box=document.createElement('div');box.className='stat';
+  box.innerHTML='<small></small><strong></strong><small></small><small></small>';
+  box.children[0].textContent=cardName(id);
+  box.children[1].textContent=money(balance)+' pendiente';
+  box.children[2].textContent='Cupo disponible: '+money(available);
+  box.children[3].textContent='Corte día '+c.cutoff+' · pago día '+c.due;
+  summary.appendChild(box);
+ });
+
+ const cat=$('ccPurchaseCat'),old=cat.value;cat.innerHTML='';
+ data.categories.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;cat.appendChild(o)});
+ if(data.categories.includes(old))cat.value=old;
+
+ const date=$('ccPurchaseDate').value||dateNow;
+ if(!$('ccPurchaseDate').value)$('ccPurchaseDate').value=dateNow;
+ if(!$('ccPaymentDate').value)$('ccPaymentDate').value=dateNow;
+ const cyc=cycleFor(date,$('ccPurchaseCard').value);
+ $('ccCyclePreview').textContent='Esta compra entraría al corte del '+cyc.cutoff+' y tendría fecha de pago '+cyc.due+'.';
+ $('ccInstallmentFields').hidden=$('ccPurchaseMode').value!=='diferido';
+}
+
+$('ccPurchaseDate').onchange=renderCards;$('ccPurchaseCard').onchange=renderCards;$('ccPurchaseMode').onchange=renderCards;
+
+$('ccAddPurchase').onclick = () => {
+ const date = $('ccPurchaseDate').value, desc = $('ccPurchaseDesc').value.trim(), amount = Number($('ccPurchaseAmount').value), card = $('ccPurchaseCard').value, mode = $('ccPurchaseMode').value, cat = $('ccPurchaseCat').value;
+ if (!date || !desc || !Number.isFinite(amount) || amount <= 0) { alert('Completa los datos de la compra.'); return; }
+ let installments = 1, interest = 0;
+ if (mode === 'diferido') {
+  installments = Number($('ccInstallments').value); interest = Number($('ccInterest').value || 0);
+  if (!Number.isInteger(installments) || installments < 1 || !Number.isFinite(interest) || interest < 0) { alert('Ingresa un número de cuotas válido.'); return; }
+ }
+ const cyc = cycleFor(date, card);
+ const purchase = { id: Date.now() + Math.random(), date, desc, amount, card, mode, cat, installments, interest, cutoff: cyc.cutoff, due: cyc.due };
+ data.cardPurchases.push(purchase);
+ 
+ save(); $('ccPurchaseDesc').value = ''; $('ccPurchaseAmount').value = ''; render(); renderCards();
+ alert('Compra con tarjeta registrada.');
+};
+
+$('ccAddPayment').onclick=()=>{
+ const date=$('ccPaymentDate').value,amount=Number($('ccPaymentAmount').value),card=$('ccPaymentCard').value,note=$('ccPaymentNote').value.trim();
+ if(!date||!Number.isFinite(amount)||amount<=0){alert('Completa la fecha y valor del pago.');return}
+ if(amount>cardBalance(card)+0.001&&!confirm('El pago supera la deuda calculada. ¿Continuar?'))return;
+ data.cardPayments.push({id:Date.now()+Math.random(),date,amount,card,note});
+ save();$('ccPaymentAmount').value='';$('ccPaymentNote').value='';render();renderCards();
+ alert('Pago a tarjeta registrado.');
+};
+
+$('ccSaveSettings').onclick=()=>{
+ const read=(id,min,max)=>{const v=Number($(id).value);if($(id).value.trim()===''||!Number.isFinite(v)||v<min||v>max)return null;return v};
+ const l1=read('ccLimit1',0,100000000),c1=read('ccCutoff1',1,28),d1=read('ccDue1',1,28),l2=read('ccLimit2',0,100000000),c2=read('ccCutoff2',1,28),d2=read('ccDue2',1,28),o1=read('ccOpening1',0,100000000),o2=read('ccOpening2',0,100000000),n1=$('ccName1').value.trim(),n2=$('ccName2').value.trim();
+ if([l1,c1,d1,l2,c2,d2,o1,o2].some(x=>x===null)||!n1||!n2){alert('Revisa los datos de las tarjetas.');return}
+ data.cards.card1={...cardObj('card1'),name:n1,limit:l1,cutoff:c1,due:d1,openingBalance:o1};
+ data.cards.card2={...cardObj('card2'),name:n2,limit:l2,cutoff:c2,due:d2,openingBalance:o2};
+ save();renderCards();alert('Configuración guardada.');
+};
+
+function loadCardSettings(){
+ const c1=cardObj('card1'),c2=cardObj('card2');
+ $('ccName1').value=c1.name;$('ccLimit1').value=c1.limit;$('ccCutoff1').value=c1.cutoff;$('ccDue1').value=c1.due;$('ccOpening1').value=c1.openingBalance;
+ $('ccName2').value=c2.name;$('ccLimit2').value=c2.limit;$('ccCutoff2').value=c2.cutoff;$('ccDue2').value=c2.due;$('ccOpening2').value=c2.openingBalance;
+}
+loadCardSettings();renderCards();
+
+// --- AUTOCATEGORIZACIÓN ---
+const reglasCategorias = [
+  { categoria: 'Ahorro con Mel', palabras: ['ahorro melany', 'ahorro novia', 'ahorro con mel'] },
+  { categoria: 'Salidas con mi novia', palabras: ['melany', 'mel', 'solsito', 'cita', 'flores', 'regalo melany'] },
+  { categoria: 'Gasolina', palabras: ['gasolina', 'combustible', 'gasolinera', 'extra', 'super', 'disel', 'diesel'] },
+  { categoria: 'Comida del gato', palabras: ['gato', 'gatito', 'comida gato', 'arena', 'cat', 'nucita', 'veterinario'] },
+  { categoria: 'Gastos de la casa', palabras: ['arriendo', 'alquiler', 'luz', 'agua', 'internet', 'almacen el perno', 'el perno', 'supermercado', 'aki', 'gran aki'] },
+  { categoria: 'Plan celular', palabras: ['celular', 'plan', 'saldo', 'claro', 'movistar', 'cnt', 'tuenti'] },
+  { categoria: 'Salidas con amigos', palabras: ['amigos', 'reunion', 'parrillada', 'cerveza'] },
+  { categoria: 'Zapatos', palabras: ['zapatos', 'zapatillas', 'calzado', 'botas'] },
+  { categoria: 'Ropa', palabras: ['ropa', 'camisa', 'pantalon', 'pantalón', 'chaqueta', 'buzo'] },
+  { categoria: 'Golosinas/antojos', palabras: ['snack', 'antojo', 'dulce', 'café', 'chocolate', 'salchipapa'] },
+  { categoria: 'Alimentacion', palabras: ['almuerzo', 'desayuno', 'cena', 'merienda', 'comida'] }
+];
+
+function normalizarTexto(texto) {
+  return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+
+function autoAsignarCategoria() {
+  const descInput = document.getElementById('desc');
+  const catSelect = document.getElementById('cat');
+  const kindSelect = document.getElementById('kind');
+  if (!descInput || !catSelect) return;
+
+  const texto = normalizarTexto(descInput.value);
+  if (!texto) return;
+
+  const esAhorroPersonal = (texto === 'ahorro' || texto === 'ahorro personal' || texto === 'guardar ahorro') && !texto.includes('melany') && !texto.includes('novia');
+
+  if (esAhorroPersonal) {
+    if (kindSelect) { kindSelect.value = 'ahorro'; kindSelect.dispatchEvent(new Event('change')); }
+    const targetOpt = Array.from(catSelect.options).find(opt => opt.value.toLowerCase() === 'ahorro personal');
+    if (targetOpt) { catSelect.value = targetOpt.value; catSelect.dispatchEvent(new Event('change')); }
+    return;
+  } else {
+    if (kindSelect && kindSelect.value !== 'gasto') { kindSelect.value = 'gasto'; kindSelect.dispatchEvent(new Event('change')); }
+  }
+
+  let encontrada = false;
+  for (const regla of reglasCategorias) {
+    if (regla.palabras.some(palabra => texto.includes(normalizarTexto(palabra)))) {
+      const targetOption = Array.from(catSelect.options).find(opt => opt.value === regla.categoria);
+      if (targetOption) { catSelect.value = regla.categoria; targetOption.dispatchEvent(new Event('change')); encontrada = true; }
+      break;
+    }
+  }
+
+  if (!encontrada) {
+    const fallbackOption = Array.from(catSelect.options).find(opt => opt.value.toLowerCase() === 'gastos varios');
+    if (fallbackOption) { catSelect.value = fallbackOption.value; fallbackOption.dispatchEvent(new Event('change')); }
+  }
+}
+
+const inputDesc = document.getElementById('desc');
+if (inputDesc) {
+  inputDesc.addEventListener('input', autoAsignarCategoria);
+}
+
+function autoAsignarCategoriaTarjeta() {
+  const descInput = document.getElementById('ccPurchaseDesc');
+  const catSelect = document.getElementById('ccPurchaseCat');
+  if (!descInput || !catSelect) return;
+  const texto = normalizarTexto(descInput.value);
+  if (!texto) return;
+  let encontrada = false;
+  for (const regla of reglasCategorias) {
+    if (regla.palabras.some(palabra => texto.includes(normalizarTexto(palabra)))) {
+      const opcion = Array.from(catSelect.options).find(opt => opt.value === regla.categoria);
+      if (opcion) { catSelect.value = opcion.value; encontrada = true; }
+      break;
+    }
+  }
+  if (!encontrada) {
+    const fallback = Array.from(catSelect.options).find(opt => opt.value.toLowerCase() === 'gastos varios');
+    if (fallback) catSelect.value = fallback.value;
+  }
+}
+
+const ccDescInput = document.getElementById('ccPurchaseDesc');
+if (ccDescInput) {
+  ccDescInput.addEventListener('input', autoAsignarCategoriaTarjeta);
+}
+
+// ATAJOS TECLA ENTER
+const atajosEnter = [
+  { inputs: ['income'], btn: 'saveIncome' },
+  { inputs: ['extraDate', 'extraAmount', 'extraDesc'], btn: 'addExtraIncome' },
+  { inputs: ['date', 'desc', 'amount'], btn: 'add' },
+  { inputs: ['editBudgetLimit'], btn: 'saveBudgetLimit' },
+  { inputs: ['newCat', 'newCatLimit'], btn: 'addCat' },
+  { inputs: ['ccPurchaseDate','ccPurchaseAmount','ccPurchaseDesc'], btn: 'ccAddPurchase' },
+  { inputs: ['ccPaymentDate','ccPaymentAmount','ccPaymentNote'], btn: 'ccAddPayment' }
+];
+
+atajosEnter.forEach(grupo => {
+  grupo.inputs.forEach(idInput => {
+    const el = document.getElementById(idInput);
+    if (el) {
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const btn = document.getElementById(grupo.btn);
+          if (btn) btn.click();
+        }
+      });
+    }
+  });
+});
+
+render();
+initCloud();
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))
+}
+</script>
+</body>
+</html>
