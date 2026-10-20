@@ -518,4 +518,12 @@ tr:last-child td{border-bottom:0}
    activate(def.active);
   });
  }
- if(document.readyState==='loading')document.addEventListener('
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
+})();
+</script>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+let cloudClient=null, cloudUser=null, cloudTimer=null, cloudLoading=false;
+const cloudConfigured=()=>Boolean(window.
