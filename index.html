@@ -84,12 +84,12 @@ td button{padding:5px 8px;font-size:.72rem}
 
 .compact-tabs{display:flex;gap:6px;padding:4px;margin:0 0 14px;background:#e2e8f0;border-radius:12px;overflow-x:auto;scrollbar-width:none}
 .compact-tabs::-webkit-scrollbar{display:none}
-.compact-tabs button{flex:1;white-space:nowrap;background:transparent;color:#64748b;padding:8px 12px;border-radius:8px;font-size:.78rem;border:0}
+.compact-tabs button{flex:1;white-space:nowrap;background:transparent;color:#64748b;padding:8px 12px;border-radius:8px;font-size:.78rem;border:0;font-weight:600}
 .compact-tabs button.active{background:#fff;color:var(--navy);box-shadow:0 2px 6px rgba(15,23,42,0.08);font-weight:800}
 .tab-panel-hidden{display:none!important}
 
 .bottom-nav{position:fixed;z-index:30;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:8px max(6px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));background:rgba(255,255,255,0.95);backdrop-filter:blur(16px);border-top:1px solid var(--line);box-shadow:0 -4px 20px rgba(15,23,42,0.05)}
-.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:transparent;color:#64748b;padding:6px 2px;font-size:.65rem;font-weight:700;border-radius:10px;border:0}
+.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:transparent;color:#64748b;padding:6px 2px;font-size:.65rem;font-weight:700;border-radius:10px;border:0;cursor:pointer}
 .nav-item .nav-icon{font-size:1.1rem;line-height:1}
 .nav-item.active{background:var(--blue-light);color:var(--blue)}
 
@@ -135,115 +135,9 @@ td button{padding:5px 8px;font-size:.72rem}
           <div class="donut-chart-wrapper">
             <svg viewBox="0 0 36 36">
               <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3.8" />
-              <!-- Gastos -->
               <path id="chartSpent" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#ef4444" stroke-width="3.8" stroke-dasharray="0, 100" />
-              <!-- Ahorro -->
               <path id="chartSave" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#3b82f6" stroke-width="3.8" stroke-dasharray="0, 100" />
-              <!-- Disponible -->
               <path id="chartLeft" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-width="3.8" stroke-dasharray="0, 100" />
             </svg>
             <div class="chart-center-text">
               <small>Disponible</small>
-              <strong id="chartCenterVal">$0,00</strong>
-            </div>
-          </div>
-          <div class="chart-legend">
-            <div class="legend-item"><span style="background:#ef4444"></span>Gastos</div>
-            <div class="legend-item"><span style="background:#3b82f6"></span>Ahorro</div>
-            <div class="legend-item"><span style="background:#10b981"></span>Libre</div>
-          </div>
-        </div>
-
-        <div class="stats">
-          <div class="stat"><small>Ingresos totales</small><strong id="mIncome">$0,00</strong></div>
-          <div class="stat"><small>Gastos del mes</small><strong id="mSpent">$0,00</strong></div>
-          <div class="stat"><small>Ahorro personal</small><strong id="mSave">$0,00</strong></div>
-          <div class="stat"><small>Disponible libre</small><strong id="mLeft">$0,00</strong></div>
-        </div>
-        <p id="summary" class="note"></p>
-      </section>
-
-      <section class="card">
-        <h2>Ingreso de ASSA</h2>
-        <div class="row">
-          <div><label for="month">Mes</label><input id="month" type="month"></div>
-          <div><label for="income">Depósito recibido ($)</label><input id="income" type="number" min="0" step=".01" placeholder="Ej. 487.30"></div>
-        </div>
-        <p class="note">Ingresa lo que llegó a tu cuenta después del IESS y demás descuentos.</p>
-        <button id="saveIncome">Guardar ingreso</button>
-      </section>
-
-      <section class="card">
-        <h2>Ingresos adicionales</h2>
-        <p class="note">Registra ventas de productos u otros ingresos extra.</p>
-        <div class="row">
-          <div><label for="extraDate">Fecha</label><input id="extraDate" type="date"></div>
-          <div><label for="extraAmount">Valor ($)</label><input id="extraAmount" type="number" min=".01" step=".01" placeholder="Ej. 20.00"></div>
-        </div>
-        <label for="extraDesc">Descripción</label>
-        <input id="extraDesc" placeholder="Ej. venta adicional de un repuesto">
-        <button id="addExtraIncome">Registrar ingreso adicional</button>
-        <div class="line"><span>Total adicional del mes</span><b id="extraTotal">$0,00</b></div>
-        <div id="extraIncomeList"></div>
-        <p id="extraEmpty" class="note">Todavía no hay ingresos adicionales este mes.</p>
-      </section>
-    </div>
-  </section>
-
-  <!-- 2. REGISTRAR (PESTAÑA DEDICADA) -->
-  <section class="page" id="page-register" aria-labelledby="registerTitle">
-    <div class="page-heading">
-      <div>
-        <p class="eyebrow">REGISTRO RÁPIDO</p>
-        <h2 id="registerTitle">Registrar movimiento</h2>
-        <p class="subheading">Ingresa un nuevo gasto o ahorro diario en efectivo o transferencia.</p>
-      </div>
-    </div>
-    <section class="card">
-      <h2>Añadir gasto o ahorro</h2>
-      <label for="date">Fecha</label>
-      <input id="date" type="date">
-      <label for="desc">Descripción</label>
-      <input id="desc" placeholder="Ej. almuerzo, gasolina, comida gato">
-      <div class="row">
-        <div><label for="cat">Categoría</label><select id="cat"></select></div>
-        <div><label for="amount">Valor ($)</label><input id="amount" type="number" min=".01" step=".01"></div>
-      </div>
-      <label for="kind">Tipo</label>
-      <select id="kind">
-        <option value="gasto">Gasto</option>
-        <option value="ahorro">Ahorro personal</option>
-      </select>
-      <button id="add">Añadir movimiento</button>
-    </section>
-  </section>
-
-  <!-- 3. MOVIMIENTOS (UNIFICADO) -->
-  <section class="page" id="page-movements" aria-labelledby="movementsTitle">
-    <div class="page-heading">
-      <div>
-        <p class="eyebrow">HISTORIAL UNIFICADO</p>
-        <h2 id="movementsTitle">Movimientos del mes</h2>
-        <p class="subheading">Visualiza aquí todos tus gastos en efectivo, cuentas y tarjetas de crédito.</p>
-      </div>
-    </div>
-    <section class="card wide">
-      <h2>Historial completo</h2>
-      <div class="scroll">
-        <table>
-          <thead>
-            <tr><th>Fecha</th><th>Descripción</th><th>Categoría / Método</th><th>Tipo</th><th>Valor</th><th></th></tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
-      <p id="empty" class="note">No hay movimientos este mes.</p>
-      <p class="note">Se incluyen tanto los registros directos como las compras y pagos de tarjetas de crédito.</p>
-    </section>
-  </section>
-
-  <!-- 4. PRESUPUESTO -->
-  <section class="page" id="page-budget" aria-labelledby="budgetTitle">
-    <div class="page-heading">
-      <div>
-        <p class="eyebrow">PLANIFICA CON INTENCIÓN</
