@@ -605,12 +605,14 @@ function m(){return $('month').value||monthNow}
 function ts(){return data.transactions.filter(t=>t.date.startsWith(m()))}
 function extraIncomes(){if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];return data.additionalIncomes.filter(x=>x.date&&x.date.startsWith(m()))}
 function extraIncomeTotal(){return extraIncomes().reduce((s,x)=>s+(Number(x.amount)||0),0)}
-function spent(){
- const normalSpent = ts().filter(t=>t.kind==='gasto').reduce((s,t)=>s+t.amount,0);
- const cardSpent = (data.cardPurchases||[]).filter(x=>x.date&&x.date.startsWith(m())).reduce((s,x)=>s+(Number(x.amount)||0),0);
- return normalSpent + cardSpent;
-}
 function cardPaymentsThisMonth(){return (data.cardPayments||[]).filter(p=>p.date&&p.date.startsWith(m())).reduce((s,p)=>s+(Number(p.amount)||0),0)}
+function spent(){
+ // En el resumen principal contamos salidas reales de dinero: gastos desde cuenta/efectivo
+ // y pagos realizados a tarjetas. Las compras con tarjeta siguen en historial y presupuesto,
+ // pero no se suman aquí antes de pagarlas para evitar contar dos veces la misma compra.
+ const normalSpent = ts().filter(t=>t.kind==='gasto').reduce((s,t)=>s+(Number(t.amount)||0),0);
+ return normalSpent + cardPaymentsThisMonth();
+}
 function sav(){return ts().filter(t=>t.kind==='ahorro').reduce((s,t)=>s+t.amount,0)}
 
 function renderDonutChart(inc, sp, sv, left){
@@ -637,7 +639,7 @@ function renderDonutChart(inc, sp, sv, left){
 }
 
 function render(){
- let baseInc=Number(data.incomes[m()]||0),extraTotal=extraIncomeTotal(),inc=baseInc+extraTotal,sp=spent(),sv=sav(),left=inc-sp-sv-cardPaymentsThisMonth();
+ let baseInc=Number(data.incomes[m()]||0),extraTotal=extraIncomeTotal(),inc=baseInc+extraTotal,sp=spent(),sv=sav(),left=inc-sp-sv;
  renderCategories();
  $('income').value=data.incomes[m()]??'';
  $('mIncome').textContent=money(inc);
@@ -672,15 +674,16 @@ function render(){
      totalFixedLimit += Number(data.budgets[cat] || 0);
    }
  });
- let recommendedSavings = Math.max(0, inc - totalFixedLimit);
+ // El pago a tarjeta es una obligación mensual fija, aunque el importe cambie.
+ let recommendedSavings = Math.max(0, inc - totalFixedLimit - cardPaymentsThisMonth());
  let adviceEl = $('aiAdvice');
  if(adviceEl){
    if(inc === 0){
      adviceEl.textContent = '💡 Consejo: Ingresa tu sueldo o depósito para calcular tu meta de ahorro óptima.';
    } else if(sv >= recommendedSavings * 0.5){
-     adviceEl.textContent = `🎯 ¡Excelente ritmo! Tu meta de ahorro sugerida basada en tus ingresos menos gastos fijos es de ${money(recommendedSavings)}. ¡Vas por buen camino!`;
+     adviceEl.textContent = `🎯 ¡Excelente ritmo! Tu meta de ahorro sugerida basada en tus ingresos, gastos fijos y pagos de tarjeta registrados es de ${money(recommendedSavings)}. ¡Vas por buen camino!`;
    } else {
-     adviceEl.textContent = `💡 Sugerencia inteligente: Con tus ingresos actuales y cubriendo tus gastos fijos, podrías aspirar a ahorrar hasta ${money(recommendedSavings)} este mes. ¡Inténtalo!`;
+     adviceEl.textContent = `💡 Sugerencia inteligente: Con tus ingresos actuales, cubriendo tus gastos fijos y los pagos de tarjeta registrados, podrías aspirar a ahorrar hasta ${money(recommendedSavings)} este mes. ¡Inténtalo!`;
    }
  }
 
