@@ -542,7 +542,11 @@ function m(){return $('month').value||monthNow}
 function ts(){return data.transactions.filter(t=>t.date.startsWith(m()))}
 function extraIncomes(){if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];return data.additionalIncomes.filter(x=>x.date&&x.date.startsWith(m()))}
 function extraIncomeTotal(){return extraIncomes().reduce((s,x)=>s+(Number(x.amount)||0),0)}
-function spent(){return ts().filter(t=>t.kind==='gasto').reduce((s,t)=>s+t.amount,0)}
+function spent(){
+ const normalSpent = ts().filter(t=>t.kind==='gasto').reduce((s,t)=>s+t.amount,0);
+ const cardSpent = (data.cardPurchases||[]).filter(x=>x.date&&x.date.startsWith(m())).reduce((s,x)=>s+(Number(x.amount)||0),0);
+ return normalSpent + cardSpent;
+}
 function cardPaymentsThisMonth(){return (data.cardPayments||[]).filter(p=>p.date&&p.date.startsWith(m())).reduce((s,p)=>s+(Number(p.amount)||0),0)}
 function sav(){return ts().filter(t=>t.kind==='ahorro').reduce((s,t)=>s+t.amount,0)}
 
@@ -737,18 +741,20 @@ function renderCards(){
 
 $('ccPurchaseDate').onchange=renderCards;$('ccPurchaseCard').onchange=renderCards;$('ccPurchaseMode').onchange=renderCards;
 
-$('ccAddPurchase').onclick=()=>{
- const date=$('ccPurchaseDate').value,desc=$('ccPurchaseDesc').value.trim(),amount=Number($('ccPurchaseAmount').value),card=$('ccPurchaseCard').value,mode=$('ccPurchaseMode').value,cat=$('ccPurchaseCat').value;
- if(!date||!desc||!Number.isFinite(amount)||amount<=0){alert('Completa los datos de la compra.');return}
- let installments=1,interest=0;
- if(mode==='diferido'){
-  installments=Number($('ccInstallments').value);interest=Number($('ccInterest').value||0);
-  if(!Number.isInteger(installments)||installments<1||!Number.isFinite(interest)||interest<0){alert('Ingresa un número de cuotas válido.');return}
+$('ccAddPurchase').onclick = () => {
+ const date = $('ccPurchaseDate').value, desc = $('ccPurchaseDesc').value.trim(), amount = Number($('ccPurchaseAmount').value), card = $('ccPurchaseCard').value, mode = $('ccPurchaseMode').value, cat = $('ccPurchaseCat').value;
+ if (!date || !desc || !Number.isFinite(amount) || amount <= 0) { alert('Completa los datos de la compra.'); return; }
+ let installments = 1, interest = 0;
+ if (mode === 'diferido') {
+  installments = Number($('ccInstallments').value); interest = Number($('ccInterest').value || 0);
+  if (!Number.isInteger(installments) || installments < 1 || !Number.isFinite(interest) || interest < 0) { alert('Ingresa un número de cuotas válido.'); return; }
  }
- const cyc=cycleFor(date,card);
- const purchase={id:Date.now()+Math.random(),date,desc,amount,card,mode,cat,installments,interest,cutoff:cyc.cutoff,due:cyc.due};
+ const cyc = cycleFor(date, card);
+ const purchase = { id: Date.now() + Math.random(), date, desc, amount, card, mode, cat, installments, interest, cutoff: cyc.cutoff, due: cyc.due };
  data.cardPurchases.push(purchase);
- save();$('ccPurchaseDesc').value='';$('ccPurchaseAmount').value='';render();renderCards();
+ 
+ // YA NO SE DUPLICA EN data.transactions, SE QUEDA SOLO EN cardPurchases
+ save(); $('ccPurchaseDesc').value = ''; $('ccPurchaseAmount').value = ''; render(); renderCards();
  alert('Compra con tarjeta registrada.');
 };
 
