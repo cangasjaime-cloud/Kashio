@@ -191,28 +191,19 @@ tr:last-child td{border-bottom:0}
       </section>
 
       <section class="card">
-        <h2>Ingreso Mensual</h2>
+        <h2>Ingresos</h2>
+        <p class="note">Registra aquí tu sueldo, comisiones, ventas y cualquier otro ingreso. Cada registro tendrá su propia fecha y aparecerá en Movimientos.</p>
         <div class="row">
-          <div><label for="month">Mes</label><input id="month" type="month"></div>
-          <div><label for="income">Depósito recibido ($)</label><input id="income" type="number" min="0" step=".01" placeholder="Ej. 487.30"></div>
-        </div>
-        <p class="note">Ingresa lo que llegó a tu cuenta después del IESS y demás descuentos.</p>
-        <button id="saveIncome">Guardar ingreso</button>
-      </section>
-
-      <section class="card">
-        <h2>Ingresos adicionales</h2>
-        <p class="note">Registra ventas de productos u otros ingresos extra.</p>
-        <div class="row">
-          <div><label for="extraDate">Fecha</label><input id="extraDate" type="date"></div>
-          <div><label for="extraAmount">Valor ($)</label><input id="extraAmount" type="number" min=".01" step=".01" placeholder="Ej. 20.00"></div>
+          <div><label for="month">Mes de consulta</label><input id="month" type="month"></div>
+          <div><label for="extraDate">Fecha de ingreso</label><input id="extraDate" type="date"></div>
+          <div><label for="extraAmount">Valor recibido ($)</label><input id="extraAmount" type="number" min=".01" step=".01" placeholder="Ej. 220.00"></div>
         </div>
         <label for="extraDesc">Descripción</label>
-        <input id="extraDesc" placeholder="Ej. venta adicional de un repuesto">
-        <button id="addExtraIncome">Registrar ingreso adicional</button>
-        <div class="line"><span>Total adicional del mes</span><b id="extraTotal">$0,00</b></div>
+        <input id="extraDesc" placeholder="Ej. Sueldo, Comisión, Venta">
+        <button id="addExtraIncome">Registrar ingreso</button>
+        <div class="line"><span>Total de ingresos del mes</span><b id="extraTotal">$0,00</b></div>
         <div id="extraIncomeList"></div>
-        <p id="extraEmpty" class="note">Todavía no hay ingresos adicionales este mes.</p>
+        <p id="extraEmpty" class="note">Todavía no hay ingresos registrados este mes.</p>
       </section>
     </div>
   </section>
@@ -562,7 +553,7 @@ const cloudConfigured=()=>Boolean(window.MI_SUPABASE_URL && window.MI_SUPABASE_A
 function cloudMessage(msg){const el=document.getElementById("cloudStatus");if(el)el.textContent=msg}
 function scheduleCloudSave(){if(!cloudClient||!cloudUser||cloudLoading)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(async()=>{try{const {error}=await cloudClient.from("budget_data").upsert({user_id:cloudUser.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(error)throw error;cloudMessage("Sesión activa: cambios guardados en la nube.")}catch(e){cloudMessage("No se pudo sincronizar. Revisa la conexión; tus cambios siguen guardados en este dispositivo.")}},700)}
 
-async function loadCloudData(user){cloudUser=user;cloudLoading=true;try{const {data:row,error}=await cloudClient.from("budget_data").select("data").eq("user_id",user.id).maybeSingle();if(error)throw error;if(row&&row.data){data={...data,...row.data,additionalIncomes:Array.isArray(row.data.additionalIncomes)?row.data.additionalIncomes:[],budgets:{...(row.data.budgets||{})},categories:Array.isArray(row.data.categories)?row.data.categories:[],categoryTypes:{...(row.data.categoryTypes||{})}};localStorage.setItem("miPresupuesto",JSON.stringify(data));render();cloudMessage("Sesión activa: tus datos se cargaron desde la nube.")}else{const {error:upErr}=await cloudClient.from("budget_data").upsert({user_id:user.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(upErr)throw upErr;cloudMessage("Cuenta conectada. Los datos locales se guardaron en la nube.")}document.getElementById("cloudEmail").value=user.email||"";document.getElementById("cloudPassword").value="";document.getElementById("cloudLogin").disabled=true;document.getElementById("cloudSignup").disabled=true;document.getElementById("cloudLogout").disabled=false;}catch(e){cloudMessage("Error al cargar o guardar en la nube: "+(e.message||"verifica políticas RLS"));cloudUser=null;}finally{cloudLoading=false}}
+async function loadCloudData(user){cloudUser=user;cloudLoading=true;try{const {data:row,error}=await cloudClient.from("budget_data").select("data").eq("user_id",user.id).maybeSingle();if(error)throw error;if(row&&row.data){data={...data,...row.data,additionalIncomes:Array.isArray(row.data.additionalIncomes)?row.data.additionalIncomes:[],budgets:{...(row.data.budgets||{})},categories:Array.isArray(row.data.categories)?row.data.categories:[],categoryTypes:{...(row.data.categoryTypes||{})}};localStorage.setItem("miPresupuesto",JSON.stringify(data));render();cloudMessage("Sesión activa: tus datos se cargaron desde la nube.")}else{const {error:upErr}=await cloudClient.from("budget_data").upsert({user_id:user.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(upErr)throw upErr;cloudMessage("Cuenta conectada. Los datos locales se guardaron en la nube.")}document.getElementById("cloudEmail").value=user.email||"";document.getElementById("cloudPassword").value="";document.getElementById("cloudLogin").disabled=true;document.getElementById("cloudSignup").disabled=true;document.getElementById("cloudLogout").disabled=false;}catch(e){cloudMessage("Error al cargar o guardar en la nube: "+(e.message||"verifica políticas RLS"));cloudUser=null;}finally{cloudLoading=false;if(data.legacyIncomeMigrated)scheduleCloudSave()}}
 
 async function initCloud(){if(!cloudConfigured()||!window.supabase){cloudMessage("Falta configurar Supabase. Los datos se guardan localmente.");return}cloudClient=window.supabase.createClient(window.MI_SUPABASE_URL,window.MI_SUPABASE_ANON_KEY);const showRecoveryForm=()=>{resetRequestBox.hidden=true;resetPasswordBox.hidden=false;cloudMessage("Enlace de recuperación detectado. Escribe tu nueva contraseña.")};const recoveryRequestedAt=Number(localStorage.getItem("miPresupuestoRecoveryRequestedAt")||0);const recoveryWasRequested=Date.now()-recoveryRequestedAt<30*60*1000;const hashParams=new URLSearchParams(window.location.hash.slice(1));const queryParams=new URLSearchParams(window.location.search);const recoveryInUrl=hashParams.get("type")==="recovery"||queryParams.get("type")==="recovery";if(recoveryInUrl)showRecoveryForm();cloudClient.auth.onAuthStateChange((event,session)=>{if(event==="PASSWORD_RECOVERY"){showRecoveryForm()}else if(event==="SIGNED_OUT"){cloudUser=null;document.getElementById("cloudLogin").disabled=false;document.getElementById("cloudSignup").disabled=false;document.getElementById("cloudLogout").disabled=true;cloudMessage("Sesión cerrada. Los datos locales se conservan.")}else if(event==="SIGNED_IN"&&session&&(!cloudUser||cloudUser.id!==session.user.id)){if(recoveryWasRequested||recoveryInUrl)showRecoveryForm();else setTimeout(()=>loadCloudData(session.user),0)}});const {data:sessionData,error}=await cloudClient.auth.getSession();if(error){cloudMessage("No se pudo comprobar la sesión: "+error.message);return}if(recoveryWasRequested&&sessionData.session){showRecoveryForm()}else if(sessionData.session)await loadCloudData(sessionData.session.user);else if(!recoveryInUrl)cloudMessage("Inicia sesión para sincronizar tus datos en todos tus dispositivos.")}
 
@@ -586,6 +577,9 @@ $('month').value=monthNow;$('date').value=dateNow;$('extraDate').value=dateNow;
 
 let data={incomes:{},additionalIncomes:[],transactions:[],budgets:{...defaults},categories:[...initialCats],categoryTypes:{...initialCategoryTypes},cardPurchases:[],cardPayments:[],cardDues:{},cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0}}};
 try{let s=localStorage.getItem('miPresupuesto');if(s){let d=JSON.parse(s);data={...data,...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],budgets:{...defaults,...(d.budgets||{})},categories:Array.isArray(d.categories)?d.categories:[...initialCats],categoryTypes:{...(d.categoryTypes||{})},cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cardDues:{...(d.cardDues||{})},cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}}}}catch(e){}
+// Migración única: los ingresos mensuales antiguos pasan a ser ingresos con fecha propia.
+function migrateLegacyIncome(){const legacy=data.incomes&&typeof data.incomes==='object'?data.incomes:{};const entries=Object.entries(legacy);if(!entries.some(([month,amount])=>/^\d{4}-\d{2}$/.test(month)&&(Number(amount)||0)>0)){data.incomes={};data.legacyIncomeMigrated=true;return false;}entries.forEach(([month,amount])=>{const n=Number(amount)||0;if(/^\d{4}-\d{2}$/.test(month)&&n>0&&!data.additionalIncomes.some(x=>x.id==='legacy-income-'+month)){data.additionalIncomes.push({id:'legacy-income-'+month,date:month+'-01',desc:'Ingreso registrado anteriormente',amount:n,legacyMigrated:true});}});data.incomes={};data.legacyIncomeMigrated=true;localStorage.setItem('miPresupuesto',JSON.stringify(data));return true;}
+migrateLegacyIncome();
 
 function save(){localStorage.setItem('miPresupuesto',JSON.stringify(data));scheduleCloudSave()}
 
@@ -665,9 +659,8 @@ function renderDonutChart(inc, sp, sv, left){
 }
 
 function render(){
- let baseInc=Number(data.incomes[m()]||0),extraTotal=extraIncomeTotal(),inc=baseInc+extraTotal,sp=spent(),sv=sav(),left=inc-sp-sv;
+ let extraTotal=extraIncomeTotal(),inc=extraTotal,sp=spent(),sv=sav(),left=inc-sp-sv;
  renderCategories();
- $('income').value=data.incomes[m()]??'';
  $('mIncome').textContent=money(inc);
  $('extraTotal').textContent=money(extraTotal);
 
@@ -692,7 +685,7 @@ function render(){
  $('mLeft').textContent=money(left);
  $('mLeft').style.color=left<0?'#ef4444':'#10b981';
 
- $('summary').textContent=inc?`Después de gastos, ahorro y pagos a tarjetas, te quedan ${money(left)} sin asignar.`:'Ingresa tu depósito para ver el disponible.';
+ $('summary').textContent=inc?`Después de gastos, ahorro y pagos a tarjetas, te quedan ${money(left)} sin asignar.`:'Registra tus ingresos para ver el disponible.';
 
  let totalFixedLimit = 0;
  data.categories.forEach(cat => {
@@ -769,30 +762,13 @@ function render(){
   desc: x.desc,
   origin: 'Efectivo / Cuenta',
   originType: 'cash',
-  cat: 'Ingresos adicionales',
+  cat: 'Ingresos',
   typeLabel: 'Ingreso',
   typeClass: 'ingreso',
   amount: Math.abs(Number(x.amount)||0),
   isCard: false,
   eventKind: 'extraIncome'
  }));
-
- // El ingreso mensual se guarda por mes, sin una fecha exacta; se muestra el día 1
- // como referencia del período, con una descripción explícita para no confundirlo con una fecha de pago registrada.
- let baseIncomeAmount = Number(data.incomes[m()]||0);
- let baseIncomeEvents = baseIncomeAmount > 0 ? [{
-  id: 'base-income-'+m(),
-  date: m()+'-01',
-  desc: 'Ingreso mensual (registro del mes)',
-  origin: 'Efectivo / Cuenta',
-  originType: 'cash',
-  cat: 'Ingreso mensual',
-  typeLabel: 'Ingreso',
-  typeClass: 'ingreso',
-  amount: Math.abs(baseIncomeAmount),
-  isCard: false,
-  eventKind: 'baseIncome'
- }] : [];
 
  let cardPurchasesMonth = (data.cardPurchases||[]).filter(x => x.date && x.date.startsWith(m())).map(x => ({
   id: x.id,
@@ -824,7 +800,7 @@ function render(){
   cardEventType: 'Pago'
  }));
 
- let allUnifiedEvents = [...normalTx, ...extraIncomeEvents, ...baseIncomeEvents, ...cardPurchasesMonth, ...cardPaymentsMonth].sort((a,b)=>b.date.localeCompare(a.date));
+ let allUnifiedEvents = [...normalTx, ...extraIncomeEvents, ...cardPurchasesMonth, ...cardPaymentsMonth].sort((a,b)=>b.date.localeCompare(a.date));
 
  const query = ($('movSearch')?.value || '').toLowerCase().trim();
  const filterOrigin = $('movFilterOrigin')?.value || 'all';
@@ -875,10 +851,7 @@ function render(){
   btn.textContent='Eliminar';
   btn.onclick=()=>{
    if(!confirm('¿Eliminar este registro?'))return;
-   if(x.eventKind==='baseIncome'){
-     alert('El ingreso mensual se edita en la sección de ingresos; no se elimina desde el historial.');
-     return;
-   } else if(x.eventKind==='extraIncome'){
+   if(x.eventKind==='extraIncome'){
      data.additionalIncomes=(data.additionalIncomes||[]).filter(y=>y.id!==x.id);
    } else if(x.eventKind==='transaction'){
      data.transactions=data.transactions.filter(y=>y.id!==x.id);
@@ -900,7 +873,6 @@ if($('movSearch')) $('movSearch').oninput=render;
 if($('movFilterOrigin')) $('movFilterOrigin').onchange=render;
 
 $('month').onchange=()=>{loadCardSettings();render();renderCards()};
-$('saveIncome').onclick=()=>{let n=Number($('income').value);if($('income').value.trim()===''||!Number.isFinite(n)||n<0){alert('Ingresa un ingreso válido');return}data.incomes[m()]=n;save();render()};
 $('addExtraIncome').onclick=()=>{const date=$('extraDate').value,desc=$('extraDesc').value.trim(),raw=$('extraAmount').value,amount=Number(raw);if(!date||!desc||raw.trim()===''||!Number.isFinite(amount)||amount<=0){alert('Completa los campos.');return}if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];data.additionalIncomes.push({id:Date.now()+Math.random(),date,desc,amount});save();$('extraDesc').value='';$('extraAmount').value='';render()};
 
 $('add').onclick=()=>{
@@ -912,7 +884,7 @@ $('add').onclick=()=>{
 };
 
 function download(content,name,type){let u=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
-$('csv').onclick=()=>{let lines=[['Fecha','Descripción','Categoría','Tipo','Valor'],...ts().map(t=>[t.date,t.desc,t.cat,t.kind,t.amount]),...extraIncomes().map(x=>[x.date,x.desc,'Ingresos adicionales','ingreso adicional',x.amount]),...(data.cardPurchases||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.desc,'Tarjeta de crédito','compra '+x.mode+' '+x.card,x.amount]),...(data.cardPayments||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.note||'Pago tarjeta','Pago tarjeta',x.card,x.amount])];download('\ufeff'+lines.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n'),'movimientos-'+m()+'.csv','text/csv;charset=utf-8')};
+$('csv').onclick=()=>{let lines=[['Fecha','Descripción','Categoría','Tipo','Valor'],...ts().map(t=>[t.date,t.desc,t.cat,t.kind,t.amount]),...extraIncomes().map(x=>[x.date,x.desc,'Ingresos','ingreso adicional',x.amount]),...(data.cardPurchases||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.desc,'Tarjeta de crédito','compra '+x.mode+' '+x.card,x.amount]),...(data.cardPayments||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.note||'Pago tarjeta','Pago tarjeta',x.card,x.amount])];download('\ufeff'+lines.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n'),'movimientos-'+m()+'.csv','text/csv;charset=utf-8')};
 $('backup').onclick=()=>download(JSON.stringify(data,null,2),'copia-mi-presupuesto.json','application/json');
 $('restoreBtn').onclick=()=>$('restore').click();
 $('restore').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!d.incomes||!Array.isArray(d.transactions)||!d.budgets)throw 0;data={...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],categoryTypes:{...(d.categoryTypes||{})},cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}};save();render();renderCards();alert('Copia restaurada')}catch(err){alert('Archivo no válido')}e.target.value=''};
@@ -1131,7 +1103,6 @@ if (ccDescInput) {
 
 // ATAJOS TECLA ENTER
 const atajosEnter = [
-  { inputs: ['income'], btn: 'saveIncome' },
   { inputs: ['extraDate', 'extraAmount', 'extraDesc'], btn: 'addExtraIncome' },
   { inputs: ['date', 'desc', 'amount'], btn: 'add' },
   { inputs: ['editBudgetLimit'], btn: 'saveBudgetLimit' },
@@ -1208,7 +1179,7 @@ atajosEnter.forEach(grupo => {
     .replace(/\b(dolares?|usd|dolar|con|la|el|una|un|en|por|de|a|al|para|mi|tarjeta|principal|segunda|numero|cuotas?|corriente|diferido|efectivo|transferencia|categoria)\b/g,' ')
     .replace(/\s+/g,' ').trim();
   if(kind==='income') d=d.replace(/^(adicional|extra)\s+/,'');
-  if(kind==='monthly')return 'Ingreso mensual';
+  if(kind==='income' && /\b(sueldo|salario|nomina)\b/.test(normalize(text))) return 'Sueldo';
   if(kind==='payment')return d||'Pago tarjeta';
   return d||({expense:'Gasto',saving:'Ahorro personal',income:'Ingreso adicional',purchase:'Compra con tarjeta'}[kind]||'Movimiento');
  }
@@ -1217,10 +1188,9 @@ atajosEnter.forEach(grupo => {
   const t=normalize(original), amount=numberFromPhrase(t);
   if(!amount){status.textContent='No pude identificar el monto. Incluye una cantidad, por ejemplo “12 dólares”.';preview.hidden=true;pending=null;return}
   let type='expense';
-  if(/\b(mi sueldo|sueldo fue|ingreso mensual|deposito mensual|me depositaron el sueldo|salario mensual)\b/.test(t))type='monthly';
-  else if(/\b(pague|pago|pagar|abone|abono|abonar)\b/.test(t)&&/tarjeta|banco|credito/.test(t))type='payment';
+  if(/\b(pague|pago|pagar|abone|abono|abonar)\b/.test(t)&&/tarjeta|banco|credito/.test(t))type='payment';
   else if(/\b(compre|compra|comprar|gaste con tarjeta|tarjeta de credito)\b/.test(t)&&/tarjeta|credito|diferido|cuotas/.test(t))type='purchase';
-  else if(/\b(recibi|ingreso|venta|vendí|vendi|me pagaron|cobre|cobro|cobrar)\b/.test(t))type='income';
+  else if(/\b(recibi|ingreso|venta|vendí|vendi|me pagaron|cobre|cobro|cobrar|sueldo|salario|nomina|depositaron)\b/.test(t))type='income';
   else if(/\b(ahorre|ahorro|ahorrar|aporte a mi ahorro)\b/.test(t))type='saving';
   else if(/\b(compre|compra|comprar)\b/.test(t)&&/tarjeta|credito|cuotas|diferido/.test(t))type='purchase';
   const category=bestCategory(t);
@@ -1228,17 +1198,15 @@ atajosEnter.forEach(grupo => {
   const isDeferred=/diferido|cuotas/.test(t), installmentMatch=t.match(/(\d+)\s*cuotas?/), installments=isDeferred?Math.max(1,Number(installmentMatch?.[1]||1)):1;
   const desc=descriptionFrom(original,amount,type);
   pending={type,amount,desc:desc||original,date:dateNow,category:category||(data.categories[0]||''),card,mode:isDeferred?'diferido':'corriente',installments,original};
-  const labels={expense:'Gasto',saving:'Ahorro personal',income:'Ingreso adicional',monthly:'Ingreso mensual',purchase:'Compra con tarjeta',payment:'Pago de tarjeta'};
+  const labels={expense:'Gasto',saving:'Ahorro personal',income:'Ingreso',purchase:'Compra con tarjeta',payment:'Pago de tarjeta'};
   $('voicePreviewTitle').textContent='Propuesta: '+labels[type];
   let details='Monto: '+money(amount)+' · Fecha: '+dateNow;
   if(type==='expense'||type==='saving')details+=' · Categoría: '+(pending.category||'Sin categorías creadas')+' · Descripción: '+pending.desc;
-  if(type==='income')details+=' · Descripción: '+pending.desc;
-  if(type==='monthly')details+=' · Se actualizará el ingreso del mes seleccionado ('+m()+')';
+  if(type==='income')details+=' · Descripción: '+pending.desc+' · Fecha: '+pending.date;
   if(type==='purchase')details+=' · '+cardName(card)+' · '+(pending.category||'Sin categoría')+' · '+pending.mode+(isDeferred?' ('+installments+' cuotas)':'');
   if(type==='payment')details+=' · '+cardName(card)+' · '+(pending.desc||'Pago tarjeta');
   $('voicePreviewText').textContent=details;
   $('voicePreviewWarning').textContent=category?'Categoría detectada por coincidencia con tus categorías. Verifica que sea correcta.':'No detecté una categoría exacta; se propone la primera de tu lista. Revisa antes de guardar.';
-  if(type==='monthly')$('voicePreviewWarning').textContent='Este registro reemplaza el ingreso mensual del mes seleccionado; confirma que el monto sea correcto.';
   preview.hidden=false;status.textContent='Revisa la propuesta antes de guardarla.';
  }
  start.addEventListener('click',()=>{
@@ -1264,8 +1232,6 @@ atajosEnter.forEach(grupo => {
   }else if(p.type==='income'){
    if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];
    data.additionalIncomes.push({id:Date.now()+Math.random(),date:p.date,desc:p.desc||p.original,amount:p.amount});
-  }else if(p.type==='monthly'){
-   data.incomes[m()]=p.amount;
   }else if(p.type==='purchase'){
    const cyc=cycleFor(p.date,p.card);
    data.cardPurchases.push({id:Date.now()+Math.random(),date:p.date,desc:p.desc||p.original,amount:p.amount,card:p.card,mode:p.mode,cat:p.category||data.categories[0]||'',installments:p.installments,interest:0,cutoff:cyc.cutoff,due:cyc.due});
