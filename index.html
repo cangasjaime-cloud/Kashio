@@ -192,14 +192,14 @@ tr:last-child td{border-bottom:0}
 
       <section class="card">
         <h2>Ingresos</h2>
-        <p class="note">Registra aquí tu sueldo, comisiones, ventas y cualquier otro ingreso. Cada registro tendrá su propia fecha y aparecerá en Movimientos.</p>
+        <p class="note">Registra aquí tu sueldo, comisiones, ventas y cualquier otro ingreso.</p>
         <div class="row">
           <div><label for="month">Mes de consulta</label><input id="month" type="month"></div>
           <div><label for="extraDate">Fecha de ingreso</label><input id="extraDate" type="date"></div>
           <div><label for="extraAmount">Valor recibido ($)</label><input id="extraAmount" type="number" min=".01" step=".01" placeholder="Ej. 220.00"></div>
         </div>
         <label for="extraDesc">Descripción</label>
-        <input id="extraDesc" placeholder="Ej. Sueldo, Comisión, Venta">
+        <input id="extraDesc" placeholder="Ej. Sueldo, Quincena, Venta">
         <button id="addExtraIncome">Registrar ingreso</button>
         <div class="line"><span>Total de ingresos del mes</span><b id="extraTotal">$0,00</b></div>
         <div id="extraIncomeList"></div>
@@ -222,7 +222,7 @@ tr:last-child td{border-bottom:0}
       <label for="date">Fecha</label>
       <input id="date" type="date">
       <label for="desc">Descripción</label>
-      <input id="desc" placeholder="Ej. almuerzo, gasolina, comida gato">
+      <input id="desc" placeholder="Ej. comida, gasolina, arriendo, etc">
       <div class="row">
         <div><label for="cat">Categoría</label><select id="cat"></select></div>
         <div><label for="amount">Valor ($)</label><input id="amount" type="number" min=".01" step=".01"></div>
