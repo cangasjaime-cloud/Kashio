@@ -1134,6 +1134,11 @@ atajosEnter.forEach(grupo => {
  function bestCategory(text){
   const t=normalize(text); if(!Array.isArray(data.categories)||!data.categories.length)return '';
   const normCat=(value)=>normalize(value).replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+  // Si se menciona ahorro, priorizar la categoría existente Ahorro personal aunque no se diga el nombre completo.
+  if(/(^|[^a-z0-9])ahorro(s)?([^a-z0-9]|$)|\bahorre\b|\bahorrar\b/.test(t)){
+   const ahorro=data.categories.find(c=>normCat(c)==='ahorro personal');
+   if(ahorro)return ahorro;
+  }
   // Primero respetar una categoría cuyo nombre aparezca literalmente en la frase.
   const sorted=[...data.categories].sort((a,b)=>normCat(b).length-normCat(a).length);
   const literal=sorted.find(c=>normCat(t).includes(normCat(c)));
