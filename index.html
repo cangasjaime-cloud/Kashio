@@ -92,6 +92,9 @@ tr:last-child td{border-bottom:0}
 .badge-type.compra-card{background:#fef3c7;color:#b45309}
 .badge-type.ahorro{background:#e0f2fe;color:#0369a1}
 .badge-type.pago-card{background:#dcfce7;color:#15803d}
+.amount-positive{color:#059669}
+.amount-negative{color:#dc2626}
+.badge-type.ingreso{background:#dcfce7;color:#047857}
 
 .btn-delete-row{background:#fef2f2;color:#ef4444;border:0;padding:5px 12px;font-size:.73rem;border-radius:12px;font-weight:700;cursor:pointer}
 .btn-delete-row:hover{background:#fee2e2}
@@ -264,7 +267,7 @@ tr:last-child td{border-bottom:0}
       <div>
         <p class="eyebrow">HISTORIAL UNIFICADO</p>
         <h2 id="movementsTitle">Todos los Movimientos del Mes</h2>
-        <p class="subheading">Visualiza aquí todos tus gastos en efectivo, cuentas y tarjetas de crédito.</p>
+        <p class="subheading">Visualiza todos tus ingresos, gastos, ahorros y movimientos de tarjetas. Los ingresos aparecen en positivo y las salidas en negativo.</p>
       </div>
     </div>
     <section class="card wide">
@@ -753,9 +756,43 @@ function render(){
   cat: x.cat,
   typeLabel: x.kind === 'ahorro' ? 'Ahorro' : 'Gasto',
   typeClass: x.kind === 'ahorro' ? 'ahorro' : 'gasto',
-  amount: x.amount,
-  isCard: false
+  amount: -Math.abs(Number(x.amount)||0),
+  isCard: false,
+  eventKind: 'transaction'
  }));
+
+ // Los ingresos adicionales tienen fecha y descripción propias; se incorporan al historial
+ // unificado sin moverlos ni duplicarlos en la estructura de datos original.
+ let extraIncomeEvents = extraIncomes().map(x => ({
+  id: x.id,
+  date: x.date,
+  desc: x.desc,
+  origin: 'Efectivo / Cuenta',
+  originType: 'cash',
+  cat: 'Ingresos adicionales',
+  typeLabel: 'Ingreso',
+  typeClass: 'ingreso',
+  amount: Math.abs(Number(x.amount)||0),
+  isCard: false,
+  eventKind: 'extraIncome'
+ }));
+
+ // El ingreso mensual se guarda por mes, sin una fecha exacta; se muestra el día 1
+ // como referencia del período, con una descripción explícita para no confundirlo con una fecha de pago registrada.
+ let baseIncomeAmount = Number(data.incomes[m()]||0);
+ let baseIncomeEvents = baseIncomeAmount > 0 ? [{
+  id: 'base-income-'+m(),
+  date: m()+'-01',
+  desc: 'Ingreso mensual (registro del mes)',
+  origin: 'Efectivo / Cuenta',
+  originType: 'cash',
+  cat: 'Ingreso mensual',
+  typeLabel: 'Ingreso',
+  typeClass: 'ingreso',
+  amount: Math.abs(baseIncomeAmount),
+  isCard: false,
+  eventKind: 'baseIncome'
+ }] : [];
 
  let cardPurchasesMonth = (data.cardPurchases||[]).filter(x => x.date && x.date.startsWith(m())).map(x => ({
   id: x.id,
@@ -766,8 +803,9 @@ function render(){
   cat: x.cat,
   typeLabel: 'Compra tarjeta (' + (x.mode || 'corriente') + ')',
   typeClass: 'compra-card',
-  amount: x.amount,
+  amount: -Math.abs(Number(x.amount)||0),
   isCard: true,
+  eventKind: 'cardPurchase',
   cardEventType: 'Compra'
  }));
 
@@ -780,18 +818,19 @@ function render(){
   cat: 'Tarjetas de crédito',
   typeLabel: 'Pago Tarjeta',
   typeClass: 'pago-card',
-  amount: p.amount,
+  amount: -Math.abs(Number(p.amount)||0),
   isCard: true,
+  eventKind: 'cardPayment',
   cardEventType: 'Pago'
  }));
 
- let allUnifiedEvents = [...normalTx, ...cardPurchasesMonth, ...cardPaymentsMonth].sort((a,b)=>b.date.localeCompare(a.date));
+ let allUnifiedEvents = [...normalTx, ...extraIncomeEvents, ...baseIncomeEvents, ...cardPurchasesMonth, ...cardPaymentsMonth].sort((a,b)=>b.date.localeCompare(a.date));
 
  const query = ($('movSearch')?.value || '').toLowerCase().trim();
  const filterOrigin = $('movFilterOrigin')?.value || 'all';
 
  let filteredEvents = allUnifiedEvents.filter(x => {
-  const matchesSearch = x.desc.toLowerCase().includes(query) || x.cat.toLowerCase().includes(query);
+  const matchesSearch = x.desc.toLowerCase().includes(query) || x.cat.toLowerCase().includes(query) || x.typeLabel.toLowerCase().includes(query);
   const matchesOrigin = filterOrigin === 'all' || x.originType === filterOrigin;
   return matchesSearch && matchesOrigin;
  });
@@ -825,7 +864,8 @@ function render(){
 
   let tdAmount=document.createElement('td');
   let strongAmount=document.createElement('strong');
-  strongAmount.textContent=money(x.amount);
+  strongAmount.textContent=(x.amount > 0 ? '+' : '−') + money(Math.abs(x.amount));
+  strongAmount.className=x.amount > 0 ? 'amount-positive' : 'amount-negative';
   tdAmount.appendChild(strongAmount);
   tr.appendChild(tdAmount);
 
@@ -835,14 +875,17 @@ function render(){
   btn.textContent='Eliminar';
   btn.onclick=()=>{
    if(!confirm('¿Eliminar este registro?'))return;
-   if(!x.isCard){
+   if(x.eventKind==='baseIncome'){
+     alert('El ingreso mensual se edita en la sección de ingresos; no se elimina desde el historial.');
+     return;
+   } else if(x.eventKind==='extraIncome'){
+     data.additionalIncomes=(data.additionalIncomes||[]).filter(y=>y.id!==x.id);
+   } else if(x.eventKind==='transaction'){
      data.transactions=data.transactions.filter(y=>y.id!==x.id);
-   } else {
-     if(x.cardEventType==='Compra'){
-       data.cardPurchases=data.cardPurchases.filter(y=>y.id!==x.id);
-     } else {
-       data.cardPayments=data.cardPayments.filter(y=>y.id!==x.id);
-     }
+   } else if(x.eventKind==='cardPurchase'){
+     data.cardPurchases=data.cardPurchases.filter(y=>y.id!==x.id);
+   } else if(x.eventKind==='cardPayment'){
+     data.cardPayments=data.cardPayments.filter(y=>y.id!==x.id);
    }
    save();render();renderCards();
   };
