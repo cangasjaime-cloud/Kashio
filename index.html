@@ -63,6 +63,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .stat{background:#f8fafc;border-radius:12px;padding:12px;border:1px solid #f1f5f9;min-width:0}
 .stat small{display:block;color:#64748b;font-size:.7rem;margin-bottom:3px;font-weight:600}
+.stat-label-row{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:22px}.stat-label-row small{margin-bottom:3px}.privacy-toggle{padding:3px 7px;font-size:.68rem;line-height:1.2;border:1px solid #cbd5e1;background:#fff;color:#475569;border-radius:7px;white-space:nowrap}.privacy-toggle:hover{background:#f1f5f9}
 .stat strong{font-size:1.08rem;letter-spacing:-.03em;overflow-wrap:anywhere;color:var(--navy)}
 .note{font-size:.76rem;color:var(--muted);line-height:1.45;margin:10px 0 0}
 .line{display:flex;justify-content:space-between;gap:8px;margin:12px 0 6px;font-size:.82rem}
@@ -185,7 +186,7 @@ tr:last-child td{border-bottom:0}
         <div class="stats">
           <div class="stat"><small>Ingresos totales</small><strong id="mIncome">$0,00</strong></div>
           <div class="stat"><small>Gastos y pagos realizados</small><strong id="mSpent">$0,00</strong></div>
-          <div class="stat"><small>Ahorro personal</small><strong id="mSave">$0,00</strong></div>
+          <div class="stat savings-private-stat"><div class="stat-label-row"><small>Ahorro personal</small><button type="button" class="privacy-toggle" id="toggleSavingsVisibility" aria-label="Mostrar valor de ahorro personal" aria-pressed="false" title="Mostrar u ocultar ahorro personal">Mostrar</button></div><strong id="mSave">••••••</strong></div>
           <div class="stat"><small>Saldo estimado en cuenta</small><strong id="mAccount">$0,00</strong></div>
           <div class="stat"><small>Pendiente de pagar a tarjetas</small><strong id="mCardPending">$0,00</strong></div>
           <div class="stat"><small>Disponible después de reservar tarjeta</small><strong id="mLeft">$0,00</strong></div>
@@ -226,8 +227,18 @@ tr:last-child td{border-bottom:0}
     </div>
       <section class="card" id="externalSavingsCard">
         <h2>Ahorros externos</h2>
-        <p class="note">Dinero que mantienes en otras cuentas. Las transferencias a tu cuenta principal no son ingresos ni gastos.</p>
+        <p class="note">Este saldo representa el dinero que ya tienes ahorrado fuera de tu cuenta principal. Los aportes que registres aquí aparecerán como <strong>Ahorro personal</strong> en la pantalla principal, sin contarse como ingreso.</p>
         <div class="stat" style="margin-bottom:12px"><small>Saldo de ahorros externos</small><strong id="externalSavingsBalance">$170,00</strong></div>
+        <h3 style="margin:0 0 8px">Agregar dinero a mis ahorros</h3>
+        <p class="note">Usa esta opción cuando al final del mes decidas guardar parte del dinero de tu cuenta. Se descontará de tu saldo estimado y aumentará tus ahorros externos.</p>
+        <div class="row">
+          <div><label for="savingsDepositDate">Fecha</label><input id="savingsDepositDate" type="date"></div>
+          <div><label for="savingsDepositAmount">Monto ($)</label><input id="savingsDepositAmount" type="number" min=".01" step=".01" placeholder="Ej. 25.00"></div>
+        </div>
+        <label for="savingsDepositNote">Descripción (opcional)</label><input id="savingsDepositNote" placeholder="Ej. Ahorro de fin de mes">
+        <button id="savingsDepositBtn">Guardar dinero en mis ahorros</button>
+        <p id="savingsDepositStatus" class="note" aria-live="polite">El aporte se registrará como Ahorro personal y aumentará el saldo de ahorros externos.</p>
+        <div style="border-top:1px solid var(--line);margin:14px 0"></div>
         <label for="externalSavingsSet">Actualizar saldo actual ($)</label>
         <div class="row"><div><input id="externalSavingsSet" type="number" min="0" step=".01" placeholder="Ej. 170.00"></div><div><button id="externalSavingsSetBtn" class="alt" style="margin-top:0">Guardar saldo</button></div></div>
         <div style="border-top:1px solid var(--line);margin:14px 0"></div>
@@ -587,6 +598,9 @@ tr:last-child td{border-bottom:0}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 let cloudClient=null, cloudUser=null, cloudTimer=null, cloudLoading=false;
+// El valor del ahorro personal se oculta por defecto por privacidad.
+let savingsValueVisible=false;
+function updateSavingsVisibility(){const valueEl=document.getElementById("mSave"),btn=document.getElementById("toggleSavingsVisibility");if(!valueEl||!btn)return;const actual=valueEl.dataset.actualValue||"$0,00";valueEl.textContent=savingsValueVisible?actual:"••••••";btn.textContent=savingsValueVisible?"Ocultar":"Mostrar";btn.setAttribute("aria-label",savingsValueVisible?"Ocultar valor de ahorro personal":"Mostrar valor de ahorro personal");btn.setAttribute("aria-pressed",String(savingsValueVisible));}
 const cloudConfigured=()=>Boolean(window.MI_SUPABASE_URL && window.MI_SUPABASE_ANON_KEY && !window.MI_SUPABASE_URL.includes("TU_PROYECTO") && !window.MI_SUPABASE_ANON_KEY.includes("TU_CLAVE"));
 function cloudMessage(msg){const el=document.getElementById("cloudStatus");if(el)el.textContent=msg}
 function scheduleCloudSave(){if(!cloudClient||!cloudUser||cloudLoading)return;clearTimeout(cloudTimer);cloudTimer=setTimeout(async()=>{try{const {error}=await cloudClient.from("budget_data").upsert({user_id:cloudUser.id,data:data,updated_at:new Date().toISOString()},{onConflict:"user_id"});if(error)throw error;cloudMessage("Sesión activa: cambios guardados en la nube.")}catch(e){cloudMessage("No se pudo sincronizar. Revisa la conexión; tus cambios siguen guardados en este dispositivo.")}},700)}
@@ -661,6 +675,7 @@ function ts(){return data.transactions.filter(t=>t.date.startsWith(m()))}
 function extraIncomes(){if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];return data.additionalIncomes.filter(x=>x.date&&x.date.startsWith(m()))}
 function extraIncomeTotal(){return extraIncomes().reduce((s,x)=>s+(Number(x.amount)||0),0)}
 function savingsTransfersThisMonth(){if(!Array.isArray(data.savingsTransfers))data.savingsTransfers=[];return data.savingsTransfers.filter(x=>x.date&&x.date.startsWith(m())).reduce((s,x)=>s+(Number(x.amount)||0),0)}
+function ensureSavingsCategory(){if(!data.categories.includes('Ahorro personal')){data.categories.push('Ahorro personal');data.categoryTypes['Ahorro personal']='variable'}}
 function cardPaymentsThisMonth(){return (data.cardPayments||[]).filter(p=>p.date&&p.date.startsWith(m())).reduce((s,p)=>s+(Number(p.amount)||0),0)}
 function cardDueAmountThisMonth(id){return Math.max(0,Number((data.cardDues||{})[m()+'_'+id])||0)}
 function cardDuesThisMonth(){return ['card1','card2'].reduce((s,id)=>s+cardDueAmountThisMonth(id),0)}
@@ -738,7 +753,8 @@ function render(){
  });
  $('extraEmpty').style.display=monthExtras.length?'none':'block';
  $('mSpent').textContent=money(sp-pendingCards);
- $('mSave').textContent=money(sv);
+ $('mSave').dataset.actualValue=money(sv);
+ updateSavingsVisibility();
  $('mAccount').textContent=money(accountEstimate);
  $('mAccount').style.color=accountEstimate<0?'#fca5a5':'#fff';
  $('mCardPending').textContent=money(pendingCards);
@@ -918,6 +934,8 @@ function render(){
    if(x.eventKind==='extraIncome'){
      data.additionalIncomes=(data.additionalIncomes||[]).filter(y=>y.id!==x.id);
    } else if(x.eventKind==='transaction'){
+     const tx=data.transactions.find(y=>y.id===x.id);
+     if(tx&&tx.externalSavingsDepositId)data.externalSavingsBalance=Math.max(0,Math.round(((Number(data.externalSavingsBalance)||0)-(Number(tx.amount)||0))*100)/100);
      data.transactions=data.transactions.filter(y=>y.id!==x.id);
    } else if(x.eventKind==='cardPurchase'){
      data.cardPurchases=data.cardPurchases.filter(y=>y.id!==x.id);
@@ -941,8 +959,11 @@ if($('movSearch')) $('movSearch').oninput=render;
 if($('movFilterOrigin')) $('movFilterOrigin').onchange=render;
 
 $('month').onchange=()=>{loadCardSettings();render();renderCards()};
+$('toggleSavingsVisibility').onclick=()=>{savingsValueVisible=!savingsValueVisible;updateSavingsVisibility()};
 $('addExtraIncome').onclick=()=>{const date=$('extraDate').value,desc=$('extraDesc').value.trim(),raw=$('extraAmount').value,amount=Number(raw);if(!date||!desc||raw.trim()===''||!Number.isFinite(amount)||amount<=0){alert('Completa los campos.');return}if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];data.additionalIncomes.push({id:Date.now()+Math.random(),date,desc,amount});save();$('extraDesc').value='';$('extraAmount').value='';render()};
 $('savingsTransferDate').value=dateNow;
+$('savingsDepositDate').value=dateNow;
+$('savingsDepositBtn').onclick=()=>{const date=$('savingsDepositDate').value,raw=$('savingsDepositAmount').value,amount=Number(raw),balance=Number(data.externalSavingsBalance)||0;if(!date||raw.trim()===''||!Number.isFinite(amount)||amount<=0){alert('Ingresa una fecha y un monto válido.');return}const currentAccount=Number($('mAccount').textContent.replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.'))||0;const available=Number($('mLeft').textContent.replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.'))||0;if(amount>available){if(!confirm('El aporte supera el disponible estimado que muestra KASHIO ('+money(available)+'). ¿Deseas registrarlo de todos modos?'))return}else if(!confirm('Agregar '+money(amount)+' a tus ahorros externos. Se registrará como Ahorro personal y reducirá el saldo estimado disponible de tu cuenta.'))return;ensureSavingsCategory();const id=Date.now()+Math.random();data.externalSavingsBalance=Math.round((balance+amount)*100)/100;data.transactions.push({id,date,desc:$('savingsDepositNote').value.trim()||'Aporte a ahorros externos',cat:'Ahorro personal',amount:Math.round(amount*100)/100,kind:'ahorro',externalSavingsDepositId:id});save();$('savingsDepositAmount').value='';$('savingsDepositNote').value='';render();$('savingsDepositStatus').textContent='Aporte registrado como Ahorro personal. El saldo de tus ahorros externos aumentó.'};
 $('externalSavingsSetBtn').onclick=()=>{const raw=$('externalSavingsSet').value,amount=Number(raw);if(raw.trim()===''||!Number.isFinite(amount)||amount<0){alert('Ingresa un saldo válido.');return}if(!confirm('¿Actualizar el saldo actual de tus ahorros externos a '+money(amount)+'? Esto no se registrará como ingreso.'))return;data.externalSavingsBalance=amount;save();render();$('savingsTransferStatus').textContent='Saldo de ahorros externos actualizado.'};
 $('savingsTransferBtn').onclick=()=>{const date=$('savingsTransferDate').value,raw=$('savingsTransferAmount').value,amount=Number(raw),balance=Number(data.externalSavingsBalance)||0;if(!date||raw.trim()===''||!Number.isFinite(amount)||amount<=0){alert('Ingresa una fecha y un monto válido.');return}if(amount>balance){alert('El monto supera tu saldo de ahorros externos ('+money(balance)+').');return}if(!confirm('Transferir '+money(amount)+' de tus ahorros externos a tu cuenta principal? No se contará como ingreso.'))return;data.externalSavingsBalance=Math.round((balance-amount)*100)/100;if(!Array.isArray(data.savingsTransfers))data.savingsTransfers=[];data.savingsTransfers.push({id:Date.now()+Math.random(),date,amount:Math.round(amount*100)/100,note:$('savingsTransferNote').value.trim()||'Transferencia a cuenta principal'});save();$('savingsTransferAmount').value='';$('savingsTransferNote').value='';render();$('savingsTransferStatus').textContent='Transferencia registrada. El saldo estimado de tu cuenta se actualizó sin aumentar tus ingresos.'};
 
