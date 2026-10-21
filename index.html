@@ -166,6 +166,7 @@ tr:last-child td{border-bottom:0}
               <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3.8" />
               <path id="chartSpent" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#ef4444" stroke-width="3.8" stroke-dasharray="0, 100" />
               <path id="chartSave" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#3b82f6" stroke-width="3.8" stroke-dasharray="0, 100" />
+              <path id="chartCardPending" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#f59e0b" stroke-width="3.8" stroke-dasharray="0, 100" />
               <path id="chartLeft" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#10b981" stroke-width="3.8" stroke-dasharray="0, 100" />
             </svg>
             <div class="chart-center-text">
@@ -174,19 +175,23 @@ tr:last-child td{border-bottom:0}
             </div>
           </div>
           <div class="chart-legend">
-            <div class="legend-item"><span style="background:#ef4444"></span>Gastos</div>
+            <div class="legend-item"><span style="background:#ef4444"></span>Gastos/pagos</div>
             <div class="legend-item"><span style="background:#3b82f6"></span>Ahorro</div>
+            <div class="legend-item"><span style="background:#f59e0b"></span>Reservado tarjeta</div>
             <div class="legend-item"><span style="background:#10b981"></span>Libre</div>
           </div>
         </div>
 
         <div class="stats">
           <div class="stat"><small>Ingresos totales</small><strong id="mIncome">$0,00</strong></div>
-          <div class="stat"><small>Gastos del mes</small><strong id="mSpent">$0,00</strong></div>
+          <div class="stat"><small>Gastos y pagos realizados</small><strong id="mSpent">$0,00</strong></div>
           <div class="stat"><small>Ahorro personal</small><strong id="mSave">$0,00</strong></div>
-          <div class="stat"><small>Disponible libre</small><strong id="mLeft">$0,00</strong></div>
+          <div class="stat"><small>Saldo estimado en cuenta</small><strong id="mAccount">$0,00</strong></div>
+          <div class="stat"><small>Pendiente de pagar a tarjetas</small><strong id="mCardPending">$0,00</strong></div>
+          <div class="stat"><small>Disponible después de reservar tarjeta</small><strong id="mLeft">$0,00</strong></div>
         </div>
         <p id="summary" class="note"></p>
+        <p class="note">El saldo en cuenta es una estimación basada en los movimientos que registraste. El disponible descuenta además lo que tienes reservado para pagar tarjetas.</p>
         <p id="aiAdvice" class="note" style="margin-top:8px;padding:8px;background:rgba(255,255,255,0.1);border-radius:8px;color:#e2e8f0;font-weight:600"></p>
       </section>
 
@@ -205,7 +210,39 @@ tr:last-child td{border-bottom:0}
         <div id="extraIncomeList"></div>
         <p id="extraEmpty" class="note">Todavía no hay ingresos registrados este mes.</p>
       </section>
+
+
     </div>
+  </section>
+
+  <!-- AHORROS EXTERNOS -->
+  <section class="page" id="page-savings" aria-labelledby="savingsTitle">
+    <div class="page-heading">
+      <div>
+        <p class="eyebrow">CONTROL DE AHORROS</p>
+        <h2 id="savingsTitle">Ahorros externos</h2>
+        <p class="subheading">Administra el dinero que mantienes en otras cuentas y transfiérelo a tu cuenta principal cuando lo necesites.</p>
+      </div>
+    </div>
+      <section class="card" id="externalSavingsCard">
+        <h2>Ahorros externos</h2>
+        <p class="note">Dinero que mantienes en otras cuentas. Las transferencias a tu cuenta principal no son ingresos ni gastos.</p>
+        <div class="stat" style="margin-bottom:12px"><small>Saldo de ahorros externos</small><strong id="externalSavingsBalance">$170,00</strong></div>
+        <label for="externalSavingsSet">Actualizar saldo actual ($)</label>
+        <div class="row"><div><input id="externalSavingsSet" type="number" min="0" step=".01" placeholder="Ej. 170.00"></div><div><button id="externalSavingsSetBtn" class="alt" style="margin-top:0">Guardar saldo</button></div></div>
+        <div style="border-top:1px solid var(--line);margin:14px 0"></div>
+        <h3 style="margin:0 0 8px">Transferir ahorros a mi cuenta</h3>
+        <div class="row">
+          <div><label for="savingsTransferDate">Fecha</label><input id="savingsTransferDate" type="date"></div>
+          <div><label for="savingsTransferAmount">Monto ($)</label><input id="savingsTransferAmount" type="number" min=".01" step=".01" placeholder="Ej. 10.00"></div>
+        </div>
+        <label for="savingsTransferNote">Descripción (opcional)</label><input id="savingsTransferNote" placeholder="Ej. Transferencia a cuenta principal">
+        <button id="savingsTransferBtn">Transferir a cuenta principal</button>
+        <p id="savingsTransferStatus" class="note" aria-live="polite">La transferencia aumentará el saldo estimado de tu cuenta, sin contar como ingreso mensual.</p>
+        <h3 style="margin:14px 0 6px">Historial de transferencias</h3>
+        <div id="savingsTransferHistory"></div>
+        <p id="savingsTransferEmpty" class="note">Todavía no has transferido dinero desde tus ahorros.</p>
+      </section>
   </section>
 
   <!-- 2. REGISTRAR -->
@@ -499,6 +536,7 @@ tr:last-child td{border-bottom:0}
 <!-- BARRA DE NAVEGACIÓN INFERIOR DE 6 SECCIONES -->
 <nav class="bottom-nav" aria-label="Navegación principal">
   <button class="nav-item active" type="button" data-page="home"><span class="nav-icon">⌂</span><span>Inicio</span></button>
+  <button class="nav-item" type="button" data-page="savings"><span class="nav-icon">$</span><span>Ahorros</span></button>
   <button class="nav-item" type="button" data-page="register"><span class="nav-icon">✎</span><span>Registrar</span></button>
   <button class="nav-item" type="button" data-page="movements"><span class="nav-icon">↔</span><span>Movimientos</span></button>
   <button class="nav-item" type="button" data-page="budget"><span class="nav-icon">▤</span><span>Presupuesto</span></button>
@@ -510,7 +548,7 @@ tr:last-child td{border-bottom:0}
 <script>
 (function(){
  const definitions={
-  home:{labels:['Resumen','Ingresos'],groups:[[0],[1,2]],active:0},
+  home:{labels:['Resumen','Ingresos'],groups:[[0],[1]],active:0},
   budget:{labels:['Límites','Categorías'],groups:[[0],[1]],active:0},
   cards:{labels:['Resumen','Compras','Pagos','Configurar'],groups:[[0],[1],[2],[3]],active:0},
   settings:{labels:['Nube y cuenta','Respaldos'],groups:[[0],[1]],active:0}
@@ -575,8 +613,8 @@ const now=new Date(), monthNow=now.getFullYear()+'-'+String(now.getMonth()+1).pa
 
 $('month').value=monthNow;$('date').value=dateNow;$('extraDate').value=dateNow;
 
-let data={incomes:{},additionalIncomes:[],transactions:[],budgets:{...defaults},categories:[...initialCats],categoryTypes:{...initialCategoryTypes},cardPurchases:[],cardPayments:[],cardDues:{},cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0}}};
-try{let s=localStorage.getItem('miPresupuesto');if(s){let d=JSON.parse(s);data={...data,...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],budgets:{...defaults,...(d.budgets||{})},categories:Array.isArray(d.categories)?d.categories:[...initialCats],categoryTypes:{...(d.categoryTypes||{})},cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cardDues:{...(d.cardDues||{})},cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}}}}catch(e){}
+let data={incomes:{},additionalIncomes:[],transactions:[],budgets:{...defaults},categories:[...initialCats],categoryTypes:{...initialCategoryTypes},externalSavingsBalance:170,savingsTransfers:[],cardPurchases:[],cardPayments:[],cardDues:{},cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0}}};
+try{let s=localStorage.getItem('miPresupuesto');if(s){let d=JSON.parse(s);data={...data,...d,externalSavingsBalance:Number.isFinite(Number(d.externalSavingsBalance))?Math.max(0,Number(d.externalSavingsBalance)):170,savingsTransfers:Array.isArray(d.savingsTransfers)?d.savingsTransfers:[],additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],budgets:{...defaults,...(d.budgets||{})},categories:Array.isArray(d.categories)?d.categories:[...initialCats],categoryTypes:{...(d.categoryTypes||{})},cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cardDues:{...(d.cardDues||{})},cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}}}}catch(e){}
 // Migración única: los ingresos mensuales antiguos pasan a ser ingresos con fecha propia.
 function migrateLegacyIncome(){const legacy=data.incomes&&typeof data.incomes==='object'?data.incomes:{};const entries=Object.entries(legacy);if(!entries.some(([month,amount])=>/^\d{4}-\d{2}$/.test(month)&&(Number(amount)||0)>0)){data.incomes={};data.legacyIncomeMigrated=true;return false;}entries.forEach(([month,amount])=>{const n=Number(amount)||0;if(/^\d{4}-\d{2}$/.test(month)&&n>0&&!data.additionalIncomes.some(x=>x.id==='legacy-income-'+month)){data.additionalIncomes.push({id:'legacy-income-'+month,date:month+'-01',desc:'Ingreso registrado anteriormente',amount:n,legacyMigrated:true});}});data.incomes={};data.legacyIncomeMigrated=true;localStorage.setItem('miPresupuesto',JSON.stringify(data));return true;}
 migrateLegacyIncome();
@@ -622,6 +660,7 @@ function m(){return $('month').value||monthNow}
 function ts(){return data.transactions.filter(t=>t.date.startsWith(m()))}
 function extraIncomes(){if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];return data.additionalIncomes.filter(x=>x.date&&x.date.startsWith(m()))}
 function extraIncomeTotal(){return extraIncomes().reduce((s,x)=>s+(Number(x.amount)||0),0)}
+function savingsTransfersThisMonth(){if(!Array.isArray(data.savingsTransfers))data.savingsTransfers=[];return data.savingsTransfers.filter(x=>x.date&&x.date.startsWith(m())).reduce((s,x)=>s+(Number(x.amount)||0),0)}
 function cardPaymentsThisMonth(){return (data.cardPayments||[]).filter(p=>p.date&&p.date.startsWith(m())).reduce((s,p)=>s+(Number(p.amount)||0),0)}
 function cardDueAmountThisMonth(id){return Math.max(0,Number((data.cardDues||{})[m()+'_'+id])||0)}
 function cardDuesThisMonth(){return ['card1','card2'].reduce((s,id)=>s+cardDueAmountThisMonth(id),0)}
@@ -635,36 +674,54 @@ function spent(){
 }
 function sav(){return ts().filter(t=>t.kind==='ahorro').reduce((s,t)=>s+t.amount,0)}
 
-function renderDonutChart(inc, sp, sv, left){
+function renderDonutChart(inc, sp, sv, pending, left){
   const total = inc > 0 ? inc : 1;
   const pSpent = Math.max(0, Math.min(100, (sp / total) * 100));
   const pSave  = Math.max(0, Math.min(100, (sv / total) * 100));
+  const pPending = Math.max(0, Math.min(100, (pending / total) * 100));
   const pLeft  = Math.max(0, Math.min(100, (Math.max(0, left) / total) * 100));
 
   const chartSpent = $('chartSpent');
   const chartSave = $('chartSave');
+  const chartPending = $('chartCardPending');
   const chartLeft = $('chartLeft');
   
-  if(chartSpent && chartSave && chartLeft){
+  if(chartSpent && chartSave && chartPending && chartLeft){
     chartSpent.setAttribute('stroke-dasharray', `${pSpent}, 100`);
     chartSpent.setAttribute('stroke-dashoffset', '0');
-
     chartSave.setAttribute('stroke-dasharray', `${pSave}, 100`);
     chartSave.setAttribute('stroke-dashoffset', `-${pSpent}`);
-
+    chartPending.setAttribute('stroke-dasharray', `${pPending}, 100`);
+    chartPending.setAttribute('stroke-dashoffset', `-${pSpent + pSave}`);
     chartLeft.setAttribute('stroke-dasharray', `${pLeft}, 100`);
-    chartLeft.setAttribute('stroke-dashoffset', `-${pSpent + pSave}`);
+    chartLeft.setAttribute('stroke-dashoffset', `-${pSpent + pSave + pPending}`);
   }
   $('chartCenterVal').textContent = money(left);
 }
 
 function render(){
- let extraTotal=extraIncomeTotal(),inc=extraTotal,sp=spent(),sv=sav(),left=inc-sp-sv;
+ let extraTotal=extraIncomeTotal(),inc=extraTotal,sp=spent(),sv=sav(),pendingCards=pendingCardDueThisMonth(),left=inc-sp-sv;
+ // Las transferencias desde ahorros aumentan el saldo de cuenta estimado, pero no son ingresos.
+ const savingsTransfersMonth=savingsTransfersThisMonth();
+ left+=savingsTransfersMonth;
+ const accountEstimate=left+pendingCards;
  renderCategories();
+ const savingsBalanceEl=$('externalSavingsBalance');
+ if(savingsBalanceEl)savingsBalanceEl.textContent=money(Number(data.externalSavingsBalance)||0);
+ const savingsSetEl=$('externalSavingsSet');
+ if(savingsSetEl && document.activeElement!==savingsSetEl)savingsSetEl.value=(Number(data.externalSavingsBalance)||0).toFixed(2);
+ const savingsHistory=$('savingsTransferHistory');
+ if(savingsHistory){
+   savingsHistory.innerHTML='';
+   const transfers=[...(data.savingsTransfers||[])].sort((a,b)=>b.date.localeCompare(a.date));
+   transfers.slice(0,12).forEach(x=>{const row=document.createElement('div');row.className='income-item';const info=document.createElement('div');const title=document.createElement('strong');title.textContent=x.note||'Transferencia a cuenta principal';const date=document.createElement('small');date.textContent=x.date;info.append(title,date);const amount=document.createElement('b');amount.textContent='−'+money(x.amount);row.append(info,amount);savingsHistory.appendChild(row)});
+   $('savingsTransferEmpty').style.display=transfers.length?'none':'block';
+ }
+
  $('mIncome').textContent=money(inc);
  $('extraTotal').textContent=money(extraTotal);
 
- renderDonutChart(inc, sp, sv, left);
+ renderDonutChart(inc, sp-pendingCards, sv, pendingCards, left);
 
  const extraList=$('extraIncomeList');extraList.innerHTML='';
  const monthExtras=extraIncomes().sort((a,b)=>b.date.localeCompare(a.date));
@@ -680,12 +737,16 @@ function render(){
   item.append(info,amount,btn);extraList.appendChild(item);
  });
  $('extraEmpty').style.display=monthExtras.length?'none':'block';
- $('mSpent').textContent=money(sp);
+ $('mSpent').textContent=money(sp-pendingCards);
  $('mSave').textContent=money(sv);
+ $('mAccount').textContent=money(accountEstimate);
+ $('mAccount').style.color=accountEstimate<0?'#fca5a5':'#fff';
+ $('mCardPending').textContent=money(pendingCards);
+ $('mCardPending').style.color=pendingCards>0?'#fbbf24':'#fff';
  $('mLeft').textContent=money(left);
  $('mLeft').style.color=left<0?'#ef4444':'#10b981';
 
- $('summary').textContent=inc?`Después de gastos, ahorro y pagos a tarjetas, te quedan ${money(left)} sin asignar.`:'Registra tus ingresos para ver el disponible.';
+ $('summary').textContent=inc?`Saldo estimado en cuenta: ${money(accountEstimate)}. De ese monto, reserva ${money(pendingCards)} para las tarjetas; te quedan ${money(left)} disponibles para usar.`:'Registra tus ingresos para calcular el saldo estimado, la deuda pendiente de tarjetas y el disponible libre.';
 
  let totalFixedLimit = 0;
  data.categories.forEach(cat => {
@@ -800,7 +861,10 @@ function render(){
   cardEventType: 'Pago'
  }));
 
- let allUnifiedEvents = [...normalTx, ...extraIncomeEvents, ...cardPurchasesMonth, ...cardPaymentsMonth].sort((a,b)=>b.date.localeCompare(a.date));
+ let savingsTransferEvents=(data.savingsTransfers||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>({
+  id:x.id,date:x.date,desc:x.note||'Transferencia desde ahorros externos',origin:'Entre cuentas',originType:'cash',cat:'Ahorros externos',typeLabel:'Transferencia',typeClass:'ingreso',amount:Math.abs(Number(x.amount)||0),isCard:false,eventKind:'savingsTransfer'
+ }));
+ let allUnifiedEvents = [...normalTx, ...extraIncomeEvents, ...cardPurchasesMonth, ...cardPaymentsMonth, ...savingsTransferEvents].sort((a,b)=>b.date.localeCompare(a.date));
 
  const query = ($('movSearch')?.value || '').toLowerCase().trim();
  const filterOrigin = $('movFilterOrigin')?.value || 'all';
@@ -859,6 +923,10 @@ function render(){
      data.cardPurchases=data.cardPurchases.filter(y=>y.id!==x.id);
    } else if(x.eventKind==='cardPayment'){
      data.cardPayments=data.cardPayments.filter(y=>y.id!==x.id);
+   } else if(x.eventKind==='savingsTransfer'){
+     const transfer=(data.savingsTransfers||[]).find(y=>y.id===x.id);
+     if(transfer)data.externalSavingsBalance=Math.round(((Number(data.externalSavingsBalance)||0)+(Number(transfer.amount)||0))*100)/100;
+     data.savingsTransfers=(data.savingsTransfers||[]).filter(y=>y.id!==x.id);
    }
    save();render();renderCards();
   };
@@ -874,6 +942,9 @@ if($('movFilterOrigin')) $('movFilterOrigin').onchange=render;
 
 $('month').onchange=()=>{loadCardSettings();render();renderCards()};
 $('addExtraIncome').onclick=()=>{const date=$('extraDate').value,desc=$('extraDesc').value.trim(),raw=$('extraAmount').value,amount=Number(raw);if(!date||!desc||raw.trim()===''||!Number.isFinite(amount)||amount<=0){alert('Completa los campos.');return}if(!Array.isArray(data.additionalIncomes))data.additionalIncomes=[];data.additionalIncomes.push({id:Date.now()+Math.random(),date,desc,amount});save();$('extraDesc').value='';$('extraAmount').value='';render()};
+$('savingsTransferDate').value=dateNow;
+$('externalSavingsSetBtn').onclick=()=>{const raw=$('externalSavingsSet').value,amount=Number(raw);if(raw.trim()===''||!Number.isFinite(amount)||amount<0){alert('Ingresa un saldo válido.');return}if(!confirm('¿Actualizar el saldo actual de tus ahorros externos a '+money(amount)+'? Esto no se registrará como ingreso.'))return;data.externalSavingsBalance=amount;save();render();$('savingsTransferStatus').textContent='Saldo de ahorros externos actualizado.'};
+$('savingsTransferBtn').onclick=()=>{const date=$('savingsTransferDate').value,raw=$('savingsTransferAmount').value,amount=Number(raw),balance=Number(data.externalSavingsBalance)||0;if(!date||raw.trim()===''||!Number.isFinite(amount)||amount<=0){alert('Ingresa una fecha y un monto válido.');return}if(amount>balance){alert('El monto supera tu saldo de ahorros externos ('+money(balance)+').');return}if(!confirm('Transferir '+money(amount)+' de tus ahorros externos a tu cuenta principal? No se contará como ingreso.'))return;data.externalSavingsBalance=Math.round((balance-amount)*100)/100;if(!Array.isArray(data.savingsTransfers))data.savingsTransfers=[];data.savingsTransfers.push({id:Date.now()+Math.random(),date,amount:Math.round(amount*100)/100,note:$('savingsTransferNote').value.trim()||'Transferencia a cuenta principal'});save();$('savingsTransferAmount').value='';$('savingsTransferNote').value='';render();$('savingsTransferStatus').textContent='Transferencia registrada. El saldo estimado de tu cuenta se actualizó sin aumentar tus ingresos.'};
 
 $('add').onclick=()=>{
  let amount=Number($('amount').value),desc=$('desc').value.trim(),date=$('date').value;
@@ -884,10 +955,10 @@ $('add').onclick=()=>{
 };
 
 function download(content,name,type){let u=URL.createObjectURL(new Blob([content],{type})),a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
-$('csv').onclick=()=>{let lines=[['Fecha','Descripción','Categoría','Tipo','Valor'],...ts().map(t=>[t.date,t.desc,t.cat,t.kind,t.amount]),...extraIncomes().map(x=>[x.date,x.desc,'Ingresos','ingreso adicional',x.amount]),...(data.cardPurchases||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.desc,'Tarjeta de crédito','compra '+x.mode+' '+x.card,x.amount]),...(data.cardPayments||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.note||'Pago tarjeta','Pago tarjeta',x.card,x.amount])];download('\ufeff'+lines.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n'),'movimientos-'+m()+'.csv','text/csv;charset=utf-8')};
+$('csv').onclick=()=>{let lines=[['Fecha','Descripción','Categoría','Tipo','Valor'],...ts().map(t=>[t.date,t.desc,t.cat,t.kind,t.amount]),...extraIncomes().map(x=>[x.date,x.desc,'Ingresos','ingreso adicional',x.amount]),...(data.savingsTransfers||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.note||'Transferencia desde ahorros externos','Transferencia entre cuentas','Ahorros externos → cuenta principal',x.amount]),...(data.cardPurchases||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.desc,'Tarjeta de crédito','compra '+x.mode+' '+x.card,x.amount]),...(data.cardPayments||[]).filter(x=>x.date&&x.date.startsWith(m())).map(x=>[x.date,x.note||'Pago tarjeta','Pago tarjeta',x.card,x.amount])];download('\ufeff'+lines.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n'),'movimientos-'+m()+'.csv','text/csv;charset=utf-8')};
 $('backup').onclick=()=>download(JSON.stringify(data,null,2),'copia-mi-presupuesto.json','application/json');
 $('restoreBtn').onclick=()=>$('restore').click();
-$('restore').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!d.incomes||!Array.isArray(d.transactions)||!d.budgets)throw 0;data={...d,additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],categoryTypes:{...(d.categoryTypes||{})},cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}};save();render();renderCards();alert('Copia restaurada')}catch(err){alert('Archivo no válido')}e.target.value=''};
+$('restore').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!d.incomes||!Array.isArray(d.transactions)||!d.budgets)throw 0;data={...d,externalSavingsBalance:Number.isFinite(Number(d.externalSavingsBalance))?Math.max(0,Number(d.externalSavingsBalance)):170,savingsTransfers:Array.isArray(d.savingsTransfers)?d.savingsTransfers:[],additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],categoryTypes:{...(d.categoryTypes||{})},cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}};save();render();renderCards();alert('Copia restaurada')}catch(err){alert('Archivo no válido')}e.target.value=''};
 $('clear').onclick=()=>{if(confirm('¿Borrar los movimientos e ingresos del mes?')){data.transactions=data.transactions.filter(t=>!t.date.startsWith(m()));data.additionalIncomes=(data.additionalIncomes||[]).filter(x=>!x.date.startsWith(m()));data.cardPurchases=(data.cardPurchases||[]).filter(t=>!t.date.startsWith(m()));data.cardPayments=(data.cardPayments||[]).filter(t=>!t.date.startsWith(m()));save();render();renderCards()}};
 
 function showPage(name){
