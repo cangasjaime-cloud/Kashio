@@ -642,8 +642,8 @@ const now=new Date(), monthNow=now.getFullYear()+'-'+String(now.getMonth()+1).pa
 
 $('month').value=monthNow;$('date').value=dateNow;$('extraDate').value=dateNow;
 
-let data={incomes:{},additionalIncomes:[],transactions:[],budgets:{...defaults},categories:[...initialCats],categoryTypes:{...initialCategoryTypes},externalSavingsBalance:170,savingsTransfers:[],cardPurchases:[],cardPayments:[],cardDues:{},cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0}}};
-try{let s=localStorage.getItem('miPresupuesto');if(s){let d=JSON.parse(s);data={...data,...d,externalSavingsBalance:Number.isFinite(Number(d.externalSavingsBalance))?Math.max(0,Number(d.externalSavingsBalance)):170,savingsTransfers:Array.isArray(d.savingsTransfers)?d.savingsTransfers:[],additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],budgets:{...defaults,...(d.budgets||{})},categories:Array.isArray(d.categories)?d.categories:[...initialCats],categoryTypes:{...(d.categoryTypes||{})},cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cardDues:{...(d.cardDues||{})},cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}}}}catch(e){}
+let data={incomes:{},additionalIncomes:[],transactions:[],budgets:{...defaults},categories:[...initialCats],categoryTypes:{...initialCategoryTypes},externalSavingsBalance:170,savingsTransfers:[],cardPurchases:[],cardPayments:[],cardDues:{},cardDueBases:{},cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0}}};
+try{let s=localStorage.getItem('miPresupuesto');if(s){let d=JSON.parse(s);data={...data,...d,externalSavingsBalance:Number.isFinite(Number(d.externalSavingsBalance))?Math.max(0,Number(d.externalSavingsBalance)):170,savingsTransfers:Array.isArray(d.savingsTransfers)?d.savingsTransfers:[],additionalIncomes:Array.isArray(d.additionalIncomes)?d.additionalIncomes:[],budgets:{...defaults,...(d.budgets||{})},categories:Array.isArray(d.categories)?d.categories:[...initialCats],categoryTypes:{...(d.categoryTypes||{})},cardPurchases:Array.isArray(d.cardPurchases)?d.cardPurchases:[],cardPayments:Array.isArray(d.cardPayments)?d.cardPayments:[],cardDues:{...(d.cardDues||{})},cardDueBases:{...(d.cardDueBases||{})},cards:{card1:{name:'Tarjeta principal',limit:800,cutoff:13,due:28,openingBalance:0},card2:{name:'Segunda tarjeta',limit:0,cutoff:13,due:28,openingBalance:0},...(d.cards||{})}}}}catch(e){}
 // Migración única: los ingresos mensuales antiguos pasan a ser ingresos con fecha propia.
 function migrateLegacyIncome(){const legacy=data.incomes&&typeof data.incomes==='object'?data.incomes:{};const entries=Object.entries(legacy);if(!entries.some(([month,amount])=>/^\d{4}-\d{2}$/.test(month)&&(Number(amount)||0)>0)){data.incomes={};data.legacyIncomeMigrated=true;return false;}entries.forEach(([month,amount])=>{const n=Number(amount)||0;if(/^\d{4}-\d{2}$/.test(month)&&n>0&&!data.additionalIncomes.some(x=>x.id==='legacy-income-'+month)){data.additionalIncomes.push({id:'legacy-income-'+month,date:month+'-01',desc:'Ingreso registrado anteriormente',amount:n,legacyMigrated:true});}});data.incomes={};data.legacyIncomeMigrated=true;localStorage.setItem('miPresupuesto',JSON.stringify(data));return true;}
 migrateLegacyIncome();
@@ -692,7 +692,9 @@ function extraIncomeTotal(){return extraIncomes().reduce((s,x)=>s+(Number(x.amou
 function savingsTransfersThisMonth(){if(!Array.isArray(data.savingsTransfers))data.savingsTransfers=[];return data.savingsTransfers.filter(x=>x.date&&x.date.startsWith(m())).reduce((s,x)=>s+(Number(x.amount)||0),0)}
 function ensureSavingsCategory(){if(!data.categories.includes('Ahorro personal')){data.categories.push('Ahorro personal');data.categoryTypes['Ahorro personal']='variable'}}
 function cardPaymentsThisMonth(){return (data.cardPayments||[]).filter(p=>p.date&&p.date.startsWith(m())).reduce((s,p)=>s+(Number(p.amount)||0),0)}
-function cardDueAmountThisMonth(id){return Math.max(0,Number((data.cardDues||{})[m()+'_'+id])||0)}
+function purchaseDueAmountForMonth(id,month){return (data.cardPurchases||[]).filter(x=>x.card===id).reduce((s,x)=>{const dueDate=x.due||cycleFor(x.date,id).due;if(!dueDate||!dueDate.startsWith(month))return s;const amount=Number(x.amount)||0;if(x.mode==='diferido'){const n=Math.max(1,Number(x.installments)||1);const interest=Number(x.interest)||0;return s+((amount+interest)/n)}return s+amount},0)}
+function ensureCardDueBase(id,month){const key=month+'_'+id;if(!data.cardDueBases)data.cardDueBases={};if(!Object.prototype.hasOwnProperty.call(data.cardDueBases,key)){const manual=Math.max(0,Number((data.cardDues||{})[key])||0);const purchases=purchaseDueAmountForMonth(id,month);data.cardDueBases[key]=Math.max(0,manual-purchases)}return Math.max(0,Number(data.cardDueBases[key])||0)}
+function cardDueAmountThisMonth(id){const month=m();return ensureCardDueBase(id,month)+purchaseDueAmountForMonth(id,month)}
 function cardDuesThisMonth(){return ['card1','card2'].reduce((s,id)=>s+cardDueAmountThisMonth(id),0)}
 function pendingCardDueThisMonth(){return ['card1','card2'].reduce((s,id)=>{const paid=(data.cardPayments||[]).filter(p=>p.card===id&&p.date&&p.date.startsWith(m())).reduce((a,p)=>a+(Number(p.amount)||0),0);return s+Math.max(0,cardDueAmountThisMonth(id)-paid)},0)}
 function spent(){
@@ -1190,7 +1192,11 @@ $('ccSaveSettings').onclick=()=>{
  if([l1,c1,d1,l2,c2,d2,o1,o2].some(x=>x===null)||!Number.isFinite(due1)||due1<0||!Number.isFinite(due2)||due2<0||!n1||!n2){alert('Revisa los datos de las tarjetas.');return}
  data.cards.card1={...cardObj('card1'),name:n1,limit:l1,cutoff:c1,due:d1,openingBalance:o1};
  data.cards.card2={...cardObj('card2'),name:n2,limit:l2,cutoff:c2,due:d2,openingBalance:o2};
- if(!data.cardDues)data.cardDues={};data.cardDues[m()+'_card1']=due1;data.cardDues[m()+'_card2']=due2;
+ if(!data.cardDues)data.cardDues={};if(!data.cardDueBases)data.cardDueBases={};
+ const month=m();
+ data.cardDues[month+'_card1']=due1;data.cardDues[month+'_card2']=due2;
+ data.cardDueBases[month+'_card1']=Math.max(0,due1-purchaseDueAmountForMonth('card1',month));
+ data.cardDueBases[month+'_card2']=Math.max(0,due2-purchaseDueAmountForMonth('card2',month));
  save();render();renderCards();alert('Configuración guardada.');
 };
 
